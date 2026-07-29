@@ -1,0 +1,17 @@
+# Android
+.gradle/
+build/
+app/build/
+.idea/
+*.iml
+.DS_Store
+local.properties
+captures/
+.externalNativeBuild
+.cxx/
+
+# Web
+node_modules/
+.firebase/
+.surge/
+*.log

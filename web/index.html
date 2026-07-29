@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>타인이 보는 나의 MBTI | 남이 보는 내 MBTI는?</title>
+  <meta name="description" content="내가 생각하는 나 vs 남이 보는 나의 MBTI Gap 분석 플랫폼">
+  <!-- Google Fonts & FontAwesome -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700;800;900&family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="styles.css">
+
+  <!-- Firebase SDKs (Compat Mode for Browser Integration) -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+</head>
+<body>
+  <!-- Header / Simulator Navigation -->
+  <header class="top-nav">
+    <div class="nav-container">
+      <div class="logo-area">
+        <span class="logo-icon"><i class="fa-solid fa-users-viewfinder"></i></span>
+        <span class="logo-text">타인이 보는 내 <strong class="highlight">MBTI</strong></span>
+      </div>
+      <div class="mode-switcher">
+        <button id="btnAppMode" class="switch-btn active" title="유저 A의 안드로이드 앱 화면">
+          <i class="fa-solid fa-mobile-screen"></i> <span>내 대시보드 (앱)</span>
+        </button>
+        <button id="btnWebMode" class="switch-btn" title="지인이 보는 웹 응답 화면">
+          <i class="fa-solid fa-globe"></i> <span>지인 평가용 (웹)</span>
+        </button>
+      </div>
+      <div class="nav-actions">
+        <span id="firebaseStatusBadge" class="status-pill-badge" title="Firebase 연동 상태">
+          <i class="fa-solid fa-database"></i> <span id="firebaseStatusText">Firebase 준비됨 (Mock Mode)</span>
+        </span>
+        <button id="btnResetDemo" class="action-pill-btn" title="데모 데이터 새로고침">
+          <i class="fa-solid fa-rotate-right"></i> 데모 초기화
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <!-- VIEW 1: USER APP DASHBOARD (Android Phone Mockup / App View) -->
+    <section id="appViewSection" class="view-section active">
+      <div class="phone-wrapper">
+        <div class="phone-frame">
+          <div class="phone-notch"></div>
+          <div class="phone-status-bar">
+            <span>09:41</span>
+            <div class="status-icons">
+              <i class="fa-solid fa-signal"></i>
+              <i class="fa-solid fa-wifi"></i>
+              <i class="fa-solid fa-battery-full"></i>
+            </div>
+          </div>
+
+          <!-- App Internal Screen Container -->
+          <div class="app-screen">
+            <!-- App Header -->
+            <div class="app-header">
+              <div class="app-title-group">
+                <h1 class="app-title">내 MBTI 갭 리포트</h1>
+                <p class="app-subtitle">지인들이 바라본 나 vs 내가 아는 나</p>
+              </div>
+              <button id="btnEditProfile" class="icon-btn" title="프로필 수정">
+                <i class="fa-solid fa-gear"></i>
+              </button>
+            </div>
+
+            <!-- Profile Summary Card -->
+            <div class="profile-card glass-card">
+              <div class="profile-avatar-box">
+                <div class="avatar-circle" id="userAvatar">나</div>
+              </div>
+              <div class="profile-info">
+                <h2 class="user-name" id="userNameDisplay">김타인</h2>
+                <div class="mbti-badges">
+                  <span class="badge self-badge">내가 생각한 MBTI: <strong id="selfMbtiDisplay">INTJ</strong></span>
+                  <span class="badge friends-badge">지인이 본 MBTI: <strong id="perceivedMbtiDisplay">ENFJ</strong></span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Main Actions (Share Link) -->
+            <div class="share-banner-card">
+              <div class="share-text">
+                <h3><i class="fa-solid fa-paper-plane"></i> 친구들에게 평가 요청하기</h3>
+                <p>링크를 공유하고 솔직한 MBTI 진단을 받아보세요!</p>
+              </div>
+              <div class="share-btn-group">
+                <button id="btnKakaoShare" class="btn-kakao">
+                  <i class="fa-solid fa-comment"></i> 카톡으로 공유
+                </button>
+                <button id="btnCopyLink" class="btn-secondary">
+                  <i class="fa-solid fa-copy"></i> 링크 복사
+                </button>
+              </div>
+            </div>
+
+            <!-- Stats Overview Grid -->
+            <div class="stats-grid">
+              <div class="stat-card glass-card">
+                <div class="stat-icon purple"><i class="fa-solid fa-user-check"></i></div>
+                <div class="stat-body">
+                  <span class="stat-label">총 참여 지인 수</span>
+                  <strong class="stat-value" id="evaluatorCount">0명</strong>
+                </div>
+              </div>
+              <div class="stat-card glass-card">
+                <div class="stat-icon yellow"><i class="fa-solid fa-masks-theater"></i></div>
+                <div class="stat-body">
+                  <span class="stat-label">가장 큰 MBTI 차이</span>
+                  <strong class="stat-value" id="topGapDimension">T vs F (75%)</strong>
+                </div>
+              </div>
+            </div>
+
+            <!-- Core Feature: Gap Analysis Chart Section -->
+            <div class="analytics-card glass-card">
+              <div class="card-header">
+                <h3><i class="fa-solid fa-chart-column"></i> MBTI 지표별 Gap 분석</h3>
+                <span class="tooltip-tag"><i class="fa-solid fa-circle-info"></i> 내 생각 vs 지인 평균</span>
+              </div>
+              
+              <div class="chart-container" id="gapChartContainer">
+                <!-- E / I Axis -->
+                <div class="dimension-row">
+                  <div class="dimension-meta">
+                    <span class="axis-title">외향 (E) vs 내향 (I)</span>
+                    <span class="perceived-label" id="labelEI">지인 응답: E 65% / I 35%</span>
+                  </div>
+                  <div class="bar-track">
+                    <div class="self-marker" id="markerEI" style="left: 0%;" title="내 MBTI 위치 (I)">★ 내 위치</div>
+                    <div class="perceived-bar" id="barEI" style="width: 65%;"></div>
+                  </div>
+                  <div class="axis-ends">
+                    <span>E (외향)</span>
+                    <span>I (내향)</span>
+                  </div>
+                </div>
+
+                <!-- S / N Axis -->
+                <div class="dimension-row">
+                  <div class="dimension-meta">
+                    <span class="axis-title">감각 (S) vs 직관 (N)</span>
+                    <span class="perceived-label" id="labelSN">지인 응답: S 40% / N 60%</span>
+                  </div>
+                  <div class="bar-track">
+                    <div class="self-marker" id="markerSN" style="left: 100%;" title="내 MBTI 위치 (N)">★ 내 위치</div>
+                    <div class="perceived-bar" id="barSN" style="width: 40%;"></div>
+                  </div>
+                  <div class="axis-ends">
+                    <span>S (감각)</span>
+                    <span>N (직관)</span>
+                  </div>
+                </div>
+
+                <!-- T / F Axis -->
+                <div class="dimension-row">
+                  <div class="dimension-meta">
+                    <span class="axis-title">사고 (T) vs 감정 (F)</span>
+                    <span class="perceived-label" id="labelTF">지인 응답: T 20% / F 80%</span>
+                  </div>
+                  <div class="bar-track">
+                    <div class="self-marker" id="markerTF" style="left: 0%;" title="내 MBTI 위치 (T)">★ 내 위치</div>
+                    <div class="perceived-bar" id="barTF" style="width: 20%;"></div>
+                  </div>
+                  <div class="axis-ends">
+                    <span>T (사고)</span>
+                    <span>F (감정)</span>
+                  </div>
+                </div>
+
+                <!-- J / P Axis -->
+                <div class="dimension-row">
+                  <div class="dimension-meta">
+                    <span class="axis-title">판단 (J) vs 인식 (P)</span>
+                    <span class="perceived-label" id="labelJP">지인 응답: J 70% / P 30%</span>
+                  </div>
+                  <div class="bar-track">
+                    <div class="self-marker" id="markerJP" style="left: 0%;" title="내 MBTI 위치 (J)">★ 내 위치</div>
+                    <div class="perceived-bar" id="barJP" style="width: 70%;"></div>
+                  </div>
+                  <div class="axis-ends">
+                    <span>J (판단)</span>
+                    <span>P (인식)</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Key Features: Signature Keywords -->
+            <div class="keywords-card glass-card">
+              <div class="card-header">
+                <h3><i class="fa-solid fa-tags"></i> 지인들이 꼽은 내 대표 모습</h3>
+                <span class="top-tag">TOP 3</span>
+              </div>
+              <div class="keywords-cloud" id="keywordsCloud">
+                <!-- Dynamically populated -->
+              </div>
+            </div>
+
+            <!-- Friend Evaluation List -->
+            <div class="evaluators-card glass-card">
+              <div class="card-header">
+                <h3><i class="fa-solid fa-comments"></i> 실시간 지인 응답 목록</h3>
+              </div>
+              <div class="evaluators-list" id="evaluatorsList">
+                <!-- Dynamically populated -->
+              </div>
+            </div>
+
+            <!-- Bottom Floating Action: Export Image Card -->
+            <div class="app-footer-action">
+              <button id="btnExportCard" class="btn-primary-gradient">
+                <i class="fa-solid fa-image"></i> 인스타 스토리 / 카톡 결과 이미지 저장
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW 2: FRIEND EVALUATION FORM (Mobile Web View - No App / No Login required) -->
+    <section id="webViewSection" class="view-section">
+      <div class="mobile-web-container">
+        <div class="web-header">
+          <div class="web-brand">
+            <i class="fa-solid fa-paper-plane"></i> 타인이 보는 MBTI
+          </div>
+          <div class="web-badge">앱 설치 없이 1분 완료!</div>
+        </div>
+
+        <div class="web-card glass-card" id="surveyCard">
+          <div class="target-profile-bar">
+            <div class="target-avatar" id="surveyTargetAvatar">나</div>
+            <div class="target-info">
+              <h2 id="surveyTargetName">김타인</h2>
+              <p>님이 요청한 <strong>MBTI 솔직 평가</strong> 문항입니다.</p>
+            </div>
+          </div>
+
+          <!-- Progress Bar -->
+          <div class="survey-progress">
+            <div class="progress-info">
+              <span id="questionStepText">문항 1 / 10</span>
+              <span id="progressPercent">10%</span>
+            </div>
+            <div class="progress-track">
+              <div class="progress-fill" id="progressFill" style="width: 10%;"></div>
+            </div>
+          </div>
+
+          <!-- Step 1: Questions Container -->
+          <div class="question-box" id="questionBox">
+            <h3 class="question-title" id="questionTitle">1. 약속 자리에 나온 이 친구의 평소 모습은?</h3>
+            <div class="options-group" id="optionsGroup">
+              <!-- Dynamically inserted options -->
+            </div>
+          </div>
+
+          <!-- Step 2: Keywords Selection Box (Shown after questions) -->
+          <div class="keywords-select-box hidden" id="keywordsSelectBox">
+            <h3 class="step-title"><i class="fa-solid fa-tags"></i> 이 친구를 가장 잘 설명하는 키워드 (최대 3개 선택)</h3>
+            <p class="step-sub">친구들이 보는 이 사람의 진짜 특징은?</p>
+            <div class="keyword-options-grid" id="keywordOptionsGrid">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+
+          <!-- Step 3: Evaluator Info & Submit -->
+          <div class="evaluator-info-box hidden" id="evaluatorInfoBox">
+            <h3 class="step-title"><i class="fa-solid fa-user-pen"></i> 평가자 이름 입력</h3>
+            <div class="input-group">
+              <input type="text" id="evaluatorNameInput" placeholder="이름 또는 닉네임 (미입력 시 익명)" maxlength="12">
+              <label class="anon-check">
+                <input type="checkbox" id="chkAnonymous"> 익명으로 제출하기
+              </label>
+            </div>
+            <button id="btnSubmitSurvey" class="btn-primary-gradient full-width">
+              <i class="fa-solid fa-check"></i> 평가 제출하기
+            </button>
+          </div>
+
+          <!-- Navigation Controls -->
+          <div class="survey-nav-btns" id="surveyNavBtns">
+            <button id="btnPrevQuestion" class="btn-secondary" disabled>
+              <i class="fa-solid fa-chevron-left"></i> 이전
+            </button>
+            <button id="btnNextQuestion" class="btn-accent">
+              다음 <i class="fa-solid fa-chevron-right"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Survey Complete Screen -->
+        <div class="web-card glass-card hidden" id="completionCard">
+          <div class="complete-icon">
+            <i class="fa-solid fa-circle-check"></i>
+          </div>
+          <h2>평가가 성공적으로 제출되었습니다!</h2>
+          <p class="complete-desc">작성해주신 응답이 <strong id="completeTargetName">김타인</strong> 님의 MBTI 갭 리포트에 반영되었습니다.</p>
+          
+          <div class="viral-cta-box">
+            <h3>🔥 나도 지인들에게 평가 받아보고 싶다면?</h3>
+            <p>내 MBTI와 지인들이 생각하는 내 모습의 차이를 확인해 보세요!</p>
+            <button id="btnViralCreate" class="btn-kakao full-width">
+              <i class="fa-solid fa-mobile-screen"></i> 내 MBTI 평가 링크 만들기
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Profile Edit Modal -->
+  <div class="modal-overlay hidden" id="modalProfile">
+    <div class="modal-card glass-card">
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-user-gear"></i> 내 프로필 및 본인 MBTI 설정</h3>
+        <button id="btnCloseProfileModal" class="close-btn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="editNickname">닉네임</label>
+          <input type="text" id="editNickname" value="김타인" maxlength="10">
+        </div>
+        <div class="form-group">
+          <label>내가 생각하는 내 MBTI (Self MBTI)</label>
+          <div class="mbti-grid" id="mbtiGrid">
+            <!-- 16 MBTI buttons -->
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="btnSaveProfile" class="btn-primary-gradient">저장하기</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Kakao Share Simulator Modal -->
+  <div class="modal-overlay hidden" id="modalKakaoShare">
+    <div class="modal-card kakao-modal-card glass-card">
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-comment"></i> 카카오톡 공유 메시지 템플릿 예시</h3>
+        <button id="btnCloseKakaoModal" class="close-btn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="kakao-card-preview">
+          <div class="kakao-thumb">
+            <i class="fa-solid fa-users-viewfinder"></i>
+            <span>MBTI GAP TEST</span>
+          </div>
+          <div class="kakao-content">
+            <h4 id="kakaoMsgTitle">[김타인]이가 보는 내 MBTI는? 1분만에 평가해줘!</h4>
+            <p>내가 아는 나 vs 친구들이 보는 나의 갭 분석! 아래 버튼을 눌러 솔직하게 답변해주세요.</p>
+            <div class="kakao-btn-preview">평가하러 가기 (웹으로 열기)</div>
+          </div>
+        </div>
+        <p class="share-notice"><i class="fa-solid fa-circle-check"></i> 실제 카카오톡 메시지 전송 API 템플릿과 100% 연동 규격이 적용되어 있습니다.</p>
+      </div>
+      <div class="modal-footer">
+        <button id="btnSimulateFriendClick" class="btn-accent">
+          <i class="fa-solid fa-arrow-right-to-bracket"></i> 지인 평가 링크 직접 진입해보기
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Export Card Canvas Modal -->
+  <div class="modal-overlay hidden" id="modalExportCard">
+    <div class="modal-card export-modal-card glass-card">
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-image"></i> 내 MBTI 갭 리포트 요약 카드</h3>
+        <button id="btnCloseExportModal" class="close-btn">&times;</button>
+      </div>
+      <div class="modal-body align-center">
+        <canvas id="cardCanvas" width="600" height="800"></canvas>
+      </div>
+      <div class="modal-footer">
+        <button id="btnDownloadImage" class="btn-primary-gradient">
+          <i class="fa-solid fa-download"></i> 이미지 파일로 저장하기 (.png)
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div class="toast hidden" id="toast"></div>
+
+  <script src="firebase-config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
