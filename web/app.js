@@ -87,6 +87,7 @@ const QUESTIONS = [
 
 // App State & Firebase References
 let db = null;
+let currentCanvasTemplate = 'insta'; // 'insta' (1080x1920) or 'square' (600x800)
 let state = {
   user: {
     uid: 'USER_MOCK_101',
@@ -115,6 +116,7 @@ document.addEventListener('DOMContentLoaded', () => {
     seedDemoEvaluations();
   }
   initUI();
+  setupCanvasTemplateEvents();
   
   // Auto-switch to Friend Survey View if target URL parameter exists
   const urlParams = new URLSearchParams(window.location.search);
@@ -335,10 +337,11 @@ function initUI() {
   document.getElementById('btnDownloadImage').addEventListener('click', () => {
     const canvas = document.getElementById('cardCanvas');
     const link = document.createElement('a');
-    link.download = `${state.user.nickname}_MBTI_Gap_Report.png`;
+    const tplName = currentCanvasTemplate === 'insta' ? 'Instagram_Story' : 'Card_Report';
+    link.download = `${state.user.nickname}_MBTI_Gap_${tplName}.png`;
     link.href = canvas.toDataURL('image/png');
     link.click();
-    showToast('요약 카드가 이미지로 저장되었습니다!');
+    showToast('고화질 요약 카드가 이미지로 저장되었습니다!');
   });
 
   // Viral Loop CTA
@@ -353,6 +356,26 @@ function initUI() {
   document.getElementById('btnSubmitSurvey').addEventListener('click', handleSurveySubmit);
 }
 
+function setupCanvasTemplateEvents() {
+  const btnInsta = document.getElementById('btnTplInsta');
+  const btnSquare = document.getElementById('btnTplSquare');
+  if (!btnInsta || !btnSquare) return;
+
+  btnInsta.addEventListener('click', () => {
+    currentCanvasTemplate = 'insta';
+    btnInsta.classList.add('active');
+    btnSquare.classList.remove('active');
+    generateExportCanvas();
+  });
+
+  btnSquare.addEventListener('click', () => {
+    currentCanvasTemplate = 'square';
+    btnSquare.classList.add('active');
+    btnInsta.classList.remove('active');
+    generateExportCanvas();
+  });
+}
+
 // --------------------------------------------------------------------------
 // 4. Analytics Engine (MBTI Calculation & Gap Scoring)
 // --------------------------------------------------------------------------
@@ -361,7 +384,7 @@ function calculateAggregatedMbti() {
     return {
       total: 0,
       perceivedMbti: '미집계',
-      scores: { E: 50, I: 50, S: 50, N: 50, T: 50, F: 50, J: 50, P: 50 },
+      pcts: { pctE: 50, pctI: 50, pctS: 50, pctN: 50, pctT: 50, pctF: 50, pctJ: 50, pctP: 50 },
       topKeywords: [],
       maxGapDimension: '데이터 없음'
     };
@@ -727,13 +750,239 @@ function handleSurveySubmit() {
 }
 
 // --------------------------------------------------------------------------
-// 7. Canvas Image Card Generator
+// 7. Canvas Image Card Generator (9:16 Instagram Story & 3:4 Feed Cards)
 // --------------------------------------------------------------------------
 function generateExportCanvas() {
   const canvas = document.getElementById('cardCanvas');
   const ctx = canvas.getContext('2d');
   const analytics = calculateAggregatedMbti();
 
+  if (currentCanvasTemplate === 'insta') {
+    canvas.width = 1080;
+    canvas.height = 1920;
+    draw916InstagramStoryCanvas(canvas, ctx, analytics);
+  } else {
+    canvas.width = 600;
+    canvas.height = 800;
+    draw34SquareCardCanvas(canvas, ctx, analytics);
+  }
+}
+
+function draw916InstagramStoryCanvas(canvas, ctx, analytics) {
+  // Background Gradient
+  const bgGrad = ctx.createLinearGradient(0, 0, 1080, 1920);
+  bgGrad.addColorStop(0, '#0B0F19');
+  bgGrad.addColorStop(0.4, '#1E1B4B');
+  bgGrad.addColorStop(0.8, '#0F172A');
+  bgGrad.addColorStop(1, '#090D16');
+  ctx.fillStyle = bgGrad;
+  ctx.fillRect(0, 0, 1080, 1920);
+
+  // Ambient Glowing Mesh Circles
+  const g1 = ctx.createRadialGradient(900, 200, 0, 900, 200, 450);
+  g1.addColorStop(0, 'rgba(139, 92, 246, 0.35)');
+  g1.addColorStop(1, 'transparent');
+  ctx.fillStyle = g1;
+  ctx.beginPath(); ctx.arc(900, 200, 450, 0, Math.PI * 2); ctx.fill();
+
+  const g2 = ctx.createRadialGradient(150, 1000, 0, 150, 1000, 400);
+  g2.addColorStop(0, 'rgba(236, 72, 153, 0.25)');
+  g2.addColorStop(1, 'transparent');
+  ctx.fillStyle = g2;
+  ctx.beginPath(); ctx.arc(150, 1000, 400, 0, Math.PI * 2); ctx.fill();
+
+  const g3 = ctx.createRadialGradient(950, 1750, 0, 950, 1750, 350);
+  g3.addColorStop(0, 'rgba(254, 229, 0, 0.22)');
+  g3.addColorStop(1, 'transparent');
+  ctx.fillStyle = g3;
+  ctx.beginPath(); ctx.arc(950, 1750, 350, 0, Math.PI * 2); ctx.fill();
+
+  // Top Category Pill & Header
+  ctx.fillStyle = 'rgba(139, 92, 246, 0.3)';
+  ctx.strokeStyle = '#8B5CF6';
+  ctx.lineWidth = 2;
+  ctx.roundRect(80, 100, 420, 56, 28);
+  ctx.fill(); ctx.stroke();
+
+  ctx.fillStyle = '#FFFFFF';
+  ctx.font = 'bold 24px "Noto Sans KR", sans-serif';
+  ctx.fillText('✨ MBTI GAP INSIGHT REPORT', 110, 137);
+
+  ctx.fillStyle = '#94A3B8';
+  ctx.font = 'extrabold 22px "Outfit", sans-serif';
+  ctx.fillText('INSTAGRAM STORY EDITION', 80, 195);
+
+  // User Profile Summary Banner
+  ctx.fillStyle = '#FEE500';
+  ctx.beginPath();
+  ctx.arc(130, 280, 45, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.fillStyle = '#111827';
+  ctx.font = 'bold 44px "Noto Sans KR", sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText(state.user.nickname.charAt(0), 130, 296);
+  ctx.textAlign = 'left';
+
+  ctx.fillStyle = '#FFFFFF';
+  ctx.font = 'extrabold 48px "Noto Sans KR", sans-serif';
+  ctx.fillText(`${state.user.nickname} 님의 MBTI 갭`, 195, 275);
+
+  ctx.fillStyle = '#CBD5E1';
+  ctx.font = '24px "Noto Sans KR", sans-serif';
+  ctx.fillText(`👥 총 ${analytics.total}명의 지인이 솔직하게 응답함`, 195, 310);
+
+  // Main MBTI Comparison Box (1000 x 260)
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.06)';
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.18)';
+  ctx.lineWidth = 2;
+  ctx.roundRect(60, 360, 960, 240, 32);
+  ctx.fill(); ctx.stroke();
+
+  // Self MBTI Box
+  ctx.fillStyle = 'rgba(236, 72, 153, 0.15)';
+  ctx.strokeStyle = '#EC4899';
+  ctx.lineWidth = 2;
+  ctx.roundRect(100, 395, 380, 170, 24);
+  ctx.fill(); ctx.stroke();
+
+  ctx.fillStyle = '#F472B6';
+  ctx.font = 'bold 24px "Noto Sans KR", sans-serif';
+  ctx.fillText('내가 생각한 나 (Self)', 130, 435);
+
+  ctx.fillStyle = '#FFFFFF';
+  ctx.font = 'extrabold 64px "Outfit", sans-serif';
+  ctx.fillText(state.user.self_mbti, 130, 520);
+
+  // VS Divider
+  ctx.fillStyle = '#64748B';
+  ctx.font = 'black 32px "Outfit", sans-serif';
+  ctx.fillText('VS', 515, 490);
+
+  // Perceived MBTI Box
+  ctx.fillStyle = 'rgba(254, 229, 0, 0.15)';
+  ctx.strokeStyle = '#FEE500';
+  ctx.lineWidth = 2;
+  ctx.roundRect(580, 395, 380, 170, 24);
+  ctx.fill(); ctx.stroke();
+
+  ctx.fillStyle = '#FEE500';
+  ctx.font = 'bold 24px "Noto Sans KR", sans-serif';
+  ctx.fillText('지인이 본 나 (Friends)', 610, 435);
+
+  ctx.fillStyle = '#FFFFFF';
+  ctx.font = 'extrabold 64px "Outfit", sans-serif';
+  ctx.fillText(analytics.perceivedMbti, 610, 520);
+
+  // Huge Gap Banner
+  const gapGrad = ctx.createLinearGradient(60, 630, 1020, 630);
+  gapGrad.addColorStop(0, '#8B5CF6');
+  gapGrad.addColorStop(1, '#EC4899');
+  ctx.fillStyle = gapGrad;
+  ctx.roundRect(60, 630, 960, 100, 24);
+  ctx.fill();
+
+  ctx.fillStyle = '#FFFFFF';
+  ctx.font = 'black 32px "Noto Sans KR", sans-serif';
+  ctx.fillText(`🔥 가장 큰 MBTI 차이 : ${analytics.maxGapDimension}`, 100, 692);
+
+  // TOP 3 Signature Keywords Section
+  ctx.fillStyle = '#FEE500';
+  ctx.font = 'extrabold 32px "Noto Sans KR", sans-serif';
+  ctx.fillText('🏆 지인들이 선택한 내 대표 모습 TOP 3', 60, 785);
+
+  let kwY = 820;
+  const rankColors = ['#FEE500', '#E2E8F0', '#FDBA74'];
+  const rankBadges = ['🥇 1위', '🥈 2위', '🥉 3위'];
+
+  if (analytics.topKeywords.length === 0) {
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.08)';
+    ctx.roundRect(60, kwY, 960, 90, 20);
+    ctx.fill();
+    ctx.fillStyle = '#94A3B8';
+    ctx.font = '26px "Noto Sans KR", sans-serif';
+    ctx.fillText('아직 수집된 키워드가 없습니다.', 100, kwY + 54);
+  } else {
+    analytics.topKeywords.slice(0, 3).forEach((item, idx) => {
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.07)';
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+      ctx.lineWidth = 1;
+      ctx.roundRect(60, kwY, 960, 96, 20);
+      ctx.fill(); ctx.stroke();
+
+      ctx.fillStyle = rankColors[idx];
+      ctx.font = 'extrabold 28px "Noto Sans KR", sans-serif';
+      ctx.fillText(rankBadges[idx], 95, kwY + 58);
+
+      ctx.fillStyle = '#FFFFFF';
+      ctx.font = 'bold 30px "Noto Sans KR", sans-serif';
+      ctx.fillText(item.keyword, 220, kwY + 58);
+
+      ctx.fillStyle = '#94A3B8';
+      ctx.font = '24px "Noto Sans KR", sans-serif';
+      ctx.fillText(`${item.count}회 지인 지목`, 830, kwY + 58);
+
+      kwY += 114;
+    });
+  }
+
+  // 4-Axis Percentage Gauges Section
+  ctx.fillStyle = '#FFFFFF';
+  ctx.font = 'extrabold 32px "Noto Sans KR", sans-serif';
+  ctx.fillText('📊 MBTI 지표별 지인 응답 비율', 60, 1205);
+
+  const dimensions = [
+    { title: '외향 (E) vs 내향 (I)', perceived: `E ${analytics.pcts.pctE}% / I ${analytics.pcts.pctI}%`, val: analytics.pcts.pctE },
+    { title: '감각 (S) vs 직관 (N)', perceived: `S ${analytics.pcts.pctS}% / N ${analytics.pcts.pctN}%`, val: analytics.pcts.pctS },
+    { title: '사고 (T) vs 감정 (F)', perceived: `T ${analytics.pcts.pctT}% / F ${analytics.pcts.pctF}%`, val: analytics.pcts.pctT },
+    { title: '판단 (J) vs 인식 (P)', perceived: `J ${analytics.pcts.pctJ}% / P ${analytics.pcts.pctP}%`, val: analytics.pcts.pctJ }
+  ];
+
+  let dimY = 1240;
+  dimensions.forEach(d => {
+    ctx.fillStyle = 'rgba(15, 23, 42, 0.6)';
+    ctx.roundRect(60, dimY, 960, 88, 20);
+    ctx.fill();
+
+    ctx.fillStyle = '#F1F5F9';
+    ctx.font = 'bold 24px "Noto Sans KR", sans-serif';
+    ctx.fillText(d.title, 90, dimY + 38);
+
+    ctx.fillStyle = '#38BDF8';
+    ctx.font = 'extrabold 24px "Outfit", sans-serif';
+    ctx.fillText(d.perceived, 700, dimY + 38);
+
+    // Track
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.12)';
+    ctx.roundRect(90, dimY + 50, 880, 18, 9);
+    ctx.fill();
+
+    // Fill Bar
+    ctx.fillStyle = '#8B5CF6';
+    const fillW = Math.max(20, Math.min(880, (d.val / 100) * 880));
+    ctx.roundRect(90, dimY + 50, fillW, 18, 9);
+    ctx.fill();
+
+    dimY += 105;
+  });
+
+  // Bottom Instagram Story Sticker CTA (Floating Pill)
+  ctx.fillStyle = '#FEE500';
+  ctx.roundRect(60, 1680, 960, 130, 36);
+  ctx.fill();
+
+  ctx.fillStyle = '#111827';
+  ctx.font = 'black 34px "Noto Sans KR", sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('👉 "너도 나 어떤지 1분만에 평가해줘!"', 540, 1735);
+
+  ctx.fillStyle = '#475569';
+  ctx.font = 'bold 24px "Outfit", sans-serif';
+  ctx.fillText(`https://othermbti-app-2026.surge.sh/test?target=${state.user.uid}`, 540, 1780);
+  ctx.textAlign = 'left';
+}
+
+function draw34SquareCardCanvas(canvas, ctx, analytics) {
   const grad = ctx.createLinearGradient(0, 0, 600, 800);
   grad.addColorStop(0, '#0F172A');
   grad.addColorStop(0.5, '#1E1B4B');
@@ -783,10 +1032,10 @@ function generateExportCanvas() {
   ctx.fillText(analytics.perceivedMbti, 270, 187);
 
   const dimensions = [
-    { title: '외향(E) vs 내향(I)', perceived: `E ${analytics.pcts.pctE}% / I ${analytics.pctS}%`, val: analytics.pcts.pctE },
-    { title: '감각(S) vs 직관(N)', perceived: `S ${analytics.pcts.pctS}% / N ${analytics.pctN}%`, val: analytics.pcts.pctS },
-    { title: '사고(T) vs 감정(F)', perceived: `T ${analytics.pcts.pctT}% / F ${analytics.pctF}%`, val: analytics.pcts.pctT },
-    { title: '판단(J) vs 인식(P)', perceived: `J ${analytics.pcts.pctJ}% / P ${analytics.pctP}%`, val: analytics.pcts.pctJ }
+    { title: '외향(E) vs 내향(I)', perceived: `E ${analytics.pcts.pctE}% / I ${analytics.pcts.pctI}%`, val: analytics.pcts.pctE },
+    { title: '감각(S) vs 직관(N)', perceived: `S ${analytics.pcts.pctS}% / N ${analytics.pcts.pctN}%`, val: analytics.pcts.pctS },
+    { title: '사고(T) vs 감정(F)', perceived: `T ${analytics.pcts.pctT}% / F ${analytics.pcts.pctF}%`, val: analytics.pcts.pctT },
+    { title: '판단(J) vs 인식(P)', perceived: `J ${analytics.pcts.pctJ}% / P ${analytics.pcts.pctP}%`, val: analytics.pcts.pctJ }
   ];
 
   let startY = 260;

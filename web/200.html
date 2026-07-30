@@ -376,19 +376,28 @@
   <div class="modal-overlay hidden" id="modalExportCard">
     <div class="modal-card export-modal-card glass-card">
       <div class="modal-header">
-        <h3><i class="fa-solid fa-image"></i> 내 MBTI 갭 리포트 요약 카드</h3>
+        <h3><i class="fa-solid fa-image"></i> MBTI 갭 리포트 이미지 공유</h3>
         <button id="btnCloseExportModal" class="close-btn">&times;</button>
       </div>
-      <div class="modal-body align-center">
-        <canvas id="cardCanvas" width="600" height="800"></canvas>
+      <div class="template-selector-bar">
+        <button id="btnTplInsta" class="tpl-btn active">
+          <i class="fa-brands fa-instagram"></i> 9:16 인스타 스토리용
+        </button>
+        <button id="btnTplSquare" class="tpl-btn">
+          <i class="fa-solid fa-square"></i> 3:4 카톡/피드 카드용
+        </button>
+      </div>
+      <div class="modal-body align-center canvas-scroll-box">
+        <canvas id="cardCanvas" width="1080" height="1920"></canvas>
       </div>
       <div class="modal-footer">
         <button id="btnDownloadImage" class="btn-primary-gradient">
-          <i class="fa-solid fa-download"></i> 이미지 파일로 저장하기 (.png)
+          <i class="fa-solid fa-download"></i> 고화질 스토리 이미지 저장 (.png)
         </button>
       </div>
     </div>
   </div>
+
 
   <!-- Toast Notification -->
   <div class="toast hidden" id="toast"></div>

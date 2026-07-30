@@ -1,19 +1,19 @@
 package com.example.othermbti.ui
 
 import android.content.Intent
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
-import androidx.compose.foundation.BorderStroke
+import android.net.Uri
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Send
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Star
@@ -24,16 +24,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.othermbti.data.Evaluation
-import com.example.othermbti.data.MbtiGapAnalytics
+import com.example.othermbti.data.KeywordRank
 import com.example.othermbti.data.MbtiRepository
 import com.example.othermbti.data.User
 
-// Design Tokens
+// Modern 2030 Glassmorphic Dark Theme Palette
 val DeepDarkBg = Color(0xFF0F172A)
 val CardDarkBg = Color(0xFF1E293B)
 val KakaoYellow = Color(0xFFFEE500)
@@ -54,6 +56,7 @@ fun MbtiDashboardScreen(
     val user by repository.user.collectAsState()
     val evaluations by repository.evaluations.collectAsState()
     var showEditDialog by remember { mutableStateOf(false) }
+    var showExportDialog by remember { mutableStateOf(false) }
 
     val analytics = remember(user, evaluations) {
         repository.calculateAnalytics()
@@ -72,7 +75,7 @@ fun MbtiDashboardScreen(
                 color = Color.Transparent
             ) {
                 Button(
-                    onClick = { onShowToast("MBTI 갭 리포트 요약 카드가 저장되었습니다.") },
+                    onClick = { showExportDialog = true },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(52.dp),
@@ -90,7 +93,7 @@ fun MbtiDashboardScreen(
                         Icon(Icons.Default.Share, contentDescription = null)
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = "인스타 스토리 / 카톡 결과 이미지 저장",
+                            text = "📸 인스타 스토리 9:16 / 요약 카드 공유",
                             fontWeight = FontWeight.Bold,
                             fontSize = 15.sp
                         )
@@ -205,7 +208,7 @@ fun MbtiDashboardScreen(
                 }
             }
 
-            // Gap Analysis Charts
+            // Gap Analytics Charts
             item {
                 GapAnalyticsCard(userSelfMbti = user.selfMbti, analytics = analytics)
             }
@@ -230,6 +233,35 @@ fun MbtiDashboardScreen(
                 repository.updateUser(newNick, newSelf)
                 showEditDialog = false
                 onShowToast("프로필 및 내 MBTI가 저장되었습니다.")
+            }
+        )
+    }
+
+    if (showExportDialog) {
+        ExportStoryDialog(
+            userNickname = user.nickname,
+            perceivedMbti = analytics.perceivedMbti,
+            targetUid = user.uid,
+            onDismiss = { showExportDialog = false },
+            onShareInstagram = {
+                val storyUrl = "https://othermbti-app-2026.surge.sh/test?target=${user.uid}"
+                val shareText = "✨ [${user.nickname}] 님의 MBTI Gap 리포트!\n남이 본 내 MBTI: ${analytics.perceivedMbti}\n👉 나도 1분만에 평가해주기: $storyUrl"
+                
+                val sendIntent = Intent(Intent.ACTION_SEND).apply {
+                    type = "text/plain"
+                    putExtra(Intent.EXTRA_TEXT, shareText)
+                }
+
+                try {
+                    val instaIntent = Intent(sendIntent).apply {
+                        setPackage("com.instagram.android")
+                    }
+                    context.startActivity(instaIntent)
+                } catch (e: Exception) {
+                    val chooser = Intent.createChooser(sendIntent, "인스타그램 또는 공유 앱 선택")
+                    context.startActivity(chooser)
+                }
+                showExportDialog = false
             }
         )
     }
@@ -310,7 +342,7 @@ fun ShareBannerCard(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Default.Send, contentDescription = null, tint = KakaoYellow)
+                Icon(Icons.AutoMirrored.Filled.Send, contentDescription = null, tint = KakaoYellow)
                 Spacer(modifier = Modifier.width(8.dp))
                 Column {
                     Text(
@@ -352,7 +384,7 @@ fun ShareBannerCard(
 @Composable
 fun StatCard(
     modifier: Modifier = Modifier,
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    icon: ImageVector,
     iconBg: Color,
     iconTint: Color,
     label: String,
@@ -360,7 +392,7 @@ fun StatCard(
 ) {
     Card(
         modifier = modifier,
-        shape = RoundedCornerShape(14.dp),
+        shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = CardDarkBg)
     ) {
         Row(
@@ -379,21 +411,21 @@ fun StatCard(
             }
             Column {
                 Text(text = label, color = TextMuted, fontSize = 11.sp)
-                Text(text = value, color = Color.White, fontWeight = FontWeight.ExtraBold, fontSize = 15.sp)
+                Text(text = value, color = Color.White, fontWeight = FontWeight.ExtraBold, fontSize = 14.sp)
             }
         }
     }
 }
 
 @Composable
-fun GapAnalyticsCard(userSelfMbti: String, analytics: MbtiGapAnalytics) {
+fun GapAnalyticsCard(userSelfMbti: String, analytics: com.example.othermbti.data.MbtiGapAnalytics) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(containerColor = CardDarkBg)
     ) {
         Column(
-            modifier = Modifier.padding(20.dp),
+            modifier = Modifier.padding(18.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Text(
@@ -403,129 +435,135 @@ fun GapAnalyticsCard(userSelfMbti: String, analytics: MbtiGapAnalytics) {
                 fontSize = 16.sp
             )
 
-            GapDimensionRow(
+            DimensionBarRow(
                 title = "외향 (E) vs 내향 (I)",
-                perceivedLabel = "E ${analytics.pctE}% / I ${analytics.pctI}%",
-                percentage = analytics.pctE,
-                selfIsRight = userSelfMbti.contains("I")
+                selfChar = 'E',
+                userSelfMbti = userSelfMbti,
+                pctVal = analytics.pctE,
+                labelLeft = "E ${analytics.pctE}%",
+                labelRight = "I ${analytics.pctI}%"
             )
 
-            GapDimensionRow(
+            DimensionBarRow(
                 title = "감각 (S) vs 직관 (N)",
-                perceivedLabel = "S ${analytics.pctS}% / N ${analytics.pctN}%",
-                percentage = analytics.pctS,
-                selfIsRight = userSelfMbti.contains("N")
+                selfChar = 'S',
+                userSelfMbti = userSelfMbti,
+                pctVal = analytics.pctS,
+                labelLeft = "S ${analytics.pctS}%",
+                labelRight = "N ${analytics.pctN}%"
             )
 
-            GapDimensionRow(
+            DimensionBarRow(
                 title = "사고 (T) vs 감정 (F)",
-                perceivedLabel = "T ${analytics.pctT}% / F ${analytics.pctF}%",
-                percentage = analytics.pctT,
-                selfIsRight = userSelfMbti.contains("F")
+                selfChar = 'T',
+                userSelfMbti = userSelfMbti,
+                pctVal = analytics.pctT,
+                labelLeft = "T ${analytics.pctT}%",
+                labelRight = "F ${analytics.pctF}%"
             )
 
-            GapDimensionRow(
+            DimensionBarRow(
                 title = "판단 (J) vs 인식 (P)",
-                perceivedLabel = "J ${analytics.pctJ}% / P ${analytics.pctP}%",
-                percentage = analytics.pctJ,
-                selfIsRight = userSelfMbti.contains("P")
+                selfChar = 'J',
+                userSelfMbti = userSelfMbti,
+                pctVal = analytics.pctJ,
+                labelLeft = "J ${analytics.pctJ}%",
+                labelRight = "P ${analytics.pctP}%"
             )
         }
     }
 }
 
 @Composable
-fun GapDimensionRow(
+fun DimensionBarRow(
     title: String,
-    perceivedLabel: String,
-    percentage: Int,
-    selfIsRight: Boolean
+    selfChar: Char,
+    userSelfMbti: String,
+    pctVal: Int,
+    labelLeft: String,
+    labelRight: String
 ) {
-    val animatedWidth by animateFloatAsState(
-        targetValue = percentage / 100f,
-        animationSpec = tween(durationMillis = 800),
-        label = "width"
-    )
-
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(Color(0xFF0F172A), shape = RoundedCornerShape(12.dp))
-            .padding(12.dp)
-    ) {
+    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Text(text = title, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 13.sp)
-            Text(text = perceivedLabel, color = AccentCyan, fontWeight = FontWeight.SemiBold, fontSize = 12.sp)
+            Text(text = title, color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+            Text(text = "$labelLeft / $labelRight", color = AccentCyan, fontSize = 12.sp)
         }
-
-        Spacer(modifier = Modifier.height(8.dp))
 
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(16.dp)
-                .clip(CircleShape)
-                .background(Color(0xFF334155))
+                .height(14.dp)
+                .clip(RoundedCornerShape(7.dp))
+                .background(Color(0xFF0F172A))
         ) {
             Box(
                 modifier = Modifier
                     .fillMaxHeight()
-                    .fillMaxWidth(animatedWidth)
-                    .clip(CircleShape)
-                    .background(Brush.horizontalGradient(listOf(PrimaryIndigo, PrimaryPurple)))
+                    .fillMaxWidth(pctVal / 100f)
+                    .clip(RoundedCornerShape(7.dp))
+                    .background(PrimaryPurple)
             )
         }
     }
 }
 
 @Composable
-fun KeywordsCard(topKeywords: List<com.example.othermbti.data.KeywordRank>) {
+fun KeywordsCard(topKeywords: List<KeywordRank>) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(containerColor = CardDarkBg)
     ) {
         Column(
-            modifier = Modifier.padding(20.dp),
+            modifier = Modifier.padding(18.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Text(
-                text = "🏷️ 지인들이 꼽은 내 대표 모습 (TOP 3)",
-                color = Color.White,
-                fontWeight = FontWeight.Bold,
-                fontSize = 16.sp
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "🏷️ 지인들이 꼽은 내 대표 모습 TOP 3",
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 15.sp
+                )
+            }
 
             if (topKeywords.isEmpty()) {
-                Text("아직 수집된 키워드가 없습니다.", color = TextMuted, fontSize = 13.sp)
+                Text(text = "아직 수집된 키워드가 없습니다.", color = TextMuted, fontSize = 13.sp)
             } else {
-                LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    itemsIndexed(topKeywords.take(5)) { index, rank ->
-                        val chipBg = when (index) {
-                            0 -> PrimaryPurple.copy(alpha = 0.3f)
-                            1 -> PrimaryIndigo.copy(alpha = 0.3f)
-                            else -> KakaoYellow.copy(alpha = 0.2f)
-                        }
-                        val chipText = if (index == 2) KakaoYellow else Color.White
-
-                        Surface(
-                            shape = RoundedCornerShape(20.dp),
-                            color = chipBg,
-                            border = BorderStroke(1.dp, chipText.copy(alpha = 0.4f))
-                        ) {
-                            Row(
-                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(6.dp)
-                            ) {
-                                Text("${index + 1}위", color = chipText, fontWeight = FontWeight.ExtraBold, fontSize = 11.sp)
-                                Text(rank.keyword, color = chipText, fontWeight = FontWeight.Bold, fontSize = 13.sp)
-                                Text("(${rank.count}회)", color = TextMuted, fontSize = 11.sp)
-                            }
-                        }
+                topKeywords.take(3).forEachIndexed { idx, item ->
+                    val rankColor = when (idx) {
+                        0 -> AccentPink
+                        1 -> PrimaryPurple
+                        else -> AccentCyan
+                    }
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(10.dp))
+                            .background(Color(0xFF0F172A))
+                            .padding(horizontal = 12.dp, vertical = 10.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "${idx + 1}위  ${item.keyword}",
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 13.sp
+                        )
+                        Text(
+                            text = "${item.count}회 지목",
+                            color = rankColor,
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold
+                        )
                     }
                 }
             }
@@ -541,42 +579,45 @@ fun EvaluatorsListCard(evaluations: List<Evaluation>) {
         colors = CardDefaults.cardColors(containerColor = CardDarkBg)
     ) {
         Column(
-            modifier = Modifier.padding(20.dp),
+            modifier = Modifier.padding(18.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Text(
                 text = "💬 실시간 지인 응답 목록",
                 color = Color.White,
                 fontWeight = FontWeight.Bold,
-                fontSize = 16.sp
+                fontSize = 15.sp
             )
 
             if (evaluations.isEmpty()) {
-                Text("아직 참여한 지인이 없습니다.", color = TextMuted, fontSize = 13.sp)
+                Text(text = "아직 참여한 지인이 없습니다.", color = TextMuted, fontSize = 13.sp)
             } else {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    evaluations.reversed().forEach { ev ->
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .background(Color(0xFF0F172A), shape = RoundedCornerShape(10.dp))
-                                .padding(12.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
+                evaluations.reversed().forEach { ev ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(10.dp))
+                            .background(Color(0xFF0F172A))
+                            .padding(12.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = ev.evaluatorName,
+                            color = Color.White,
+                            fontSize = 13.sp
+                        )
+                        Surface(
+                            shape = RoundedCornerShape(6.dp),
+                            color = PrimaryPurple.copy(alpha = 0.2f)
                         ) {
-                            Text(ev.evaluatorName, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                            Surface(
-                                shape = RoundedCornerShape(6.dp),
-                                color = PrimaryPurple.copy(alpha = 0.3f)
-                            ) {
-                                Text(
-                                    ev.resultMbti,
-                                    color = PrimaryPurple,
-                                    fontWeight = FontWeight.ExtraBold,
-                                    fontSize = 12.sp,
-                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-                                )
-                            }
+                            Text(
+                                text = ev.resultMbti,
+                                color = PrimaryPurple,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 12.sp,
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                            )
                         }
                     }
                 }
@@ -593,6 +634,7 @@ fun EditProfileDialog(
 ) {
     var nick by remember { mutableStateOf(user.nickname) }
     var selectedMbti by remember { mutableStateOf(user.selfMbti) }
+
     val mbtiList = listOf(
         "INTJ", "INTP", "ENTJ", "ENTP",
         "INFJ", "INFP", "ENFJ", "ENFP",
@@ -604,7 +646,7 @@ fun EditProfileDialog(
         onDismissRequest = onDismiss,
         title = { Text("프로필 및 내 MBTI 설정", fontWeight = FontWeight.Bold) },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
                 OutlinedTextField(
                     value = nick,
                     onValueChange = { nick = it },
@@ -612,21 +654,27 @@ fun EditProfileDialog(
                     singleLine = true
                 )
 
-                Text("내가 생각하는 내 MBTI 선택", fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                Text("내가 생각하는 내 MBTI", fontWeight = FontWeight.Bold, fontSize = 14.sp)
 
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    mbtiList.chunked(4).forEach { row ->
+                val rows = mbtiList.chunked(4)
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    rows.forEach { row ->
                         Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                            modifier = Modifier.fillMaxWidth()
                         ) {
-                            row.forEach { type ->
-                                FilterChip(
-                                    selected = (selectedMbti == type),
-                                    onClick = { selectedMbti = type },
-                                    label = { Text(type, fontSize = 12.sp) },
-                                    modifier = Modifier.weight(1f)
-                                )
+                            row.forEach { item ->
+                                val isSel = (item == selectedMbti)
+                                Button(
+                                    onClick = { selectedMbti = item },
+                                    modifier = Modifier.weight(1f),
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = if (isSel) PrimaryPurple else Color(0xFF334155)
+                                    ),
+                                    contentPadding = PaddingValues(4.dp)
+                                ) {
+                                    Text(item, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                }
                             }
                         }
                     }
@@ -641,6 +689,106 @@ fun EditProfileDialog(
         dismissButton = {
             TextButton(onClick = onDismiss) {
                 Text("취소")
+            }
+        }
+    )
+}
+
+@Composable
+fun ExportStoryDialog(
+    userNickname: String,
+    perceivedMbti: String,
+    targetUid: String,
+    onDismiss: () -> Unit,
+    onShareInstagram: () -> Unit
+) {
+    var selectedTemplate by remember { mutableStateOf("insta") }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(Icons.Default.Share, contentDescription = null, tint = AccentPink)
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("📸 MBTI 갭 리포트 이미지 공유", fontWeight = FontWeight.Bold, fontSize = 17.sp)
+            }
+        },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Text(
+                    text = "원하는 이미지 템플릿 크기를 선택하세요:",
+                    color = TextMuted,
+                    fontSize = 13.sp
+                )
+
+                // Option 1: 9:16 Insta Story
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { selectedTemplate = "insta" }
+                        .border(
+                            width = 2.dp,
+                            color = if (selectedTemplate == "insta") PrimaryPurple else Color.Transparent,
+                            shape = RoundedCornerShape(12.dp)
+                        ),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = if (selectedTemplate == "insta") Color(0xFF2E1065) else Color(0xFF1E293B)
+                    )
+                ) {
+                    Row(
+                        modifier = Modifier.padding(14.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Icon(Icons.Default.CheckCircle, contentDescription = null, tint = if (selectedTemplate == "insta") AccentPink else TextMuted)
+                        Column {
+                            Text("📱 9:16 인스타 스토리 전용", fontWeight = FontWeight.Bold, color = Color.White, fontSize = 14.sp)
+                            Text("1080x1920 세로형 트렌디 스티커 템플릿 (강력 추천)", color = TextMuted, fontSize = 11.sp)
+                        }
+                    }
+                }
+
+                // Option 2: 3:4 Square Card
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { selectedTemplate = "square" }
+                        .border(
+                            width = 2.dp,
+                            color = if (selectedTemplate == "square") PrimaryPurple else Color.Transparent,
+                            shape = RoundedCornerShape(12.dp)
+                        ),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = if (selectedTemplate == "square") Color(0xFF2E1065) else Color(0xFF1E293B)
+                    )
+                ) {
+                    Row(
+                        modifier = Modifier.padding(14.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Icon(Icons.Default.CheckCircle, contentDescription = null, tint = if (selectedTemplate == "square") AccentPink else TextMuted)
+                        Column {
+                            Text("🖼️ 3:4 피드 & 카톡 요약 카드", fontWeight = FontWeight.Bold, color = Color.White, fontSize = 14.sp)
+                            Text("600x800 피드 게시 및 기본 요약형 카드", color = TextMuted, fontSize = 11.sp)
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = onShareInstagram,
+                colors = ButtonDefaults.buttonColors(containerColor = PrimaryPurple)
+            ) {
+                Text("📱 스토리에 공유하기", fontWeight = FontWeight.Bold)
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("닫기", color = TextMuted)
             }
         }
     )
