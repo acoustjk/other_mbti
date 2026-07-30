@@ -3,22 +3,26 @@
    ========================================================================== */
 
 :root {
-  --bg-dark: #0F172A;
-  --bg-card: rgba(30, 41, 59, 0.75);
-  --bg-card-border: rgba(255, 255, 255, 0.12);
-  --text-main: #F8FAFC;
-  --text-muted: #94A3B8;
+  --bg-dark: #FDF4F8;
+  --bg-card: rgba(255, 255, 255, 0.88);
+  --bg-card-border: rgba(244, 114, 182, 0.2);
+  --text-main: #2E1065;
+  --text-muted: #64748B;
   --kakao-yellow: #FEE500;
   --kakao-brown: #3C1E1E;
-  --primary-purple: #8B5CF6;
-  --primary-indigo: #6366F1;
-  --accent-cyan: #06B6D4;
-  --accent-pink: #EC4899;
-  --accent-emerald: #10B981;
-  --radius-lg: 20px;
-  --radius-md: 14px;
-  --radius-sm: 8px;
-  --shadow-glow: 0 10px 30px -10px rgba(139, 92, 246, 0.35);
+  --primary-purple: #A78BFA;
+  --primary-indigo: #818CF8;
+  --accent-cyan: #38BDF8;
+  --accent-pink: #F472B6;
+  --accent-emerald: #34D399;
+  --pastel-yellow: #FEF08A;
+  --pastel-pink: #FCE7F3;
+  --pastel-purple: #EDE9FE;
+  --pastel-blue: #E0F2FE;
+  --radius-lg: 24px;
+  --radius-md: 16px;
+  --radius-sm: 10px;
+  --shadow-glow: 0 12px 32px -8px rgba(167, 139, 250, 0.3);
   --font-family: 'Noto Sans KR', 'Outfit', -apple-system, sans-serif;
 }
 
@@ -30,11 +34,12 @@
 
 body {
   font-family: var(--font-family);
-  background: var(--bg-dark);
+  background: #FAF5FF;
   background-image: 
-    radial-gradient(at 10% 10%, rgba(99, 102, 241, 0.2) 0px, transparent 50%),
-    radial-gradient(at 90% 90%, rgba(236, 72, 153, 0.15) 0px, transparent 50%),
-    radial-gradient(at 50% 50%, rgba(6, 182, 212, 0.15) 0px, transparent 50%);
+    radial-gradient(at 10% 10%, #FCE7F3 0px, transparent 50%),
+    radial-gradient(at 90% 10%, #EDE9FE 0px, transparent 50%),
+    radial-gradient(at 50% 50%, #E0F2FE 0px, transparent 50%),
+    radial-gradient(at 80% 80%, #FEF08A 0px, transparent 50%);
   background-attachment: fixed;
   color: var(--text-main);
   min-height: 100vh;
@@ -42,6 +47,7 @@ body {
   flex-direction: column;
   overflow-x: hidden;
 }
+
 
 /* --------------------------------------------------------------------------
    Header & Mode Switcher

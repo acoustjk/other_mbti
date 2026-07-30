@@ -35,16 +35,17 @@ import com.example.othermbti.data.KeywordRank
 import com.example.othermbti.data.MbtiRepository
 import com.example.othermbti.data.User
 
-// Modern 2030 Glassmorphic Dark Theme Palette
-val DeepDarkBg = Color(0xFF0F172A)
-val CardDarkBg = Color(0xFF1E293B)
-val KakaoYellow = Color(0xFFFEE500)
-val KakaoBrown = Color(0xFF3C1E1E)
-val PrimaryPurple = Color(0xFF8B5CF6)
-val PrimaryIndigo = Color(0xFF6366F1)
-val AccentCyan = Color(0xFF06B6D4)
-val AccentPink = Color(0xFFEC4899)
-val TextMuted = Color(0xFF94A3B8)
+// Cute 2030 Pastel Theme Palette
+val DeepDarkBg = Color(0xFFFAF5FF) // Soft Lavender-Pink Cloud
+val CardDarkBg = Color(0xFFFFFFFF) // Soft White Card
+val KakaoYellow = Color(0xFFFEF08A) // Soft Butter Yellow
+val KakaoBrown = Color(0xFF713F12)
+val PrimaryPurple = Color(0xFFA78BFA) // Pastel Lavender
+val PrimaryIndigo = Color(0xFF818CF8) // Soft Pastel Indigo
+val AccentCyan = Color(0xFF38BDF8) // Pastel Sky Blue
+val AccentPink = Color(0xFFF472B6) // Pastel Rose Pink
+val TextMuted = Color(0xFF64748B)
+val TextMain = Color(0xFF1E1B4B) // Soft Deep Indigo Text
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -79,12 +80,12 @@ fun MbtiDashboardScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(52.dp),
-                    shape = RoundedCornerShape(16.dp),
+                    shape = RoundedCornerShape(20.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = PrimaryPurple,
                         contentColor = Color.White
                     ),
-                    elevation = ButtonDefaults.buttonElevation(defaultElevation = 8.dp)
+                    elevation = ButtonDefaults.buttonElevation(defaultElevation = 6.dp)
                 ) {
                     Row(
                         horizontalArrangement = Arrangement.Center,
@@ -93,7 +94,7 @@ fun MbtiDashboardScreen(
                         Icon(Icons.Default.Share, contentDescription = null)
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = "📸 인스타 스토리 9:16 / 요약 카드 공유",
+                            text = "🌸 인스타 스토리 9:16 / 파스텔 카드 공유",
                             fontWeight = FontWeight.Bold,
                             fontSize = 15.sp
                         )
@@ -119,8 +120,8 @@ fun MbtiDashboardScreen(
                 ) {
                     Column {
                         Text(
-                            text = "내 MBTI 갭 리포트",
-                            color = Color.White,
+                            text = "🌸 내 MBTI 갭 리포트",
+                            color = TextMain,
                             fontSize = 22.sp,
                             fontWeight = FontWeight.ExtraBold
                         )
@@ -135,12 +136,12 @@ fun MbtiDashboardScreen(
                         onClick = { showEditDialog = true },
                         modifier = Modifier
                             .clip(CircleShape)
-                            .background(Color(0xFF334155))
+                            .background(Color(0xFFEDE9FE))
                     ) {
                         Icon(
                             imageVector = Icons.Default.Settings,
                             contentDescription = "설정",
-                            tint = Color.White
+                            tint = PrimaryPurple
                         )
                     }
                 }
@@ -156,7 +157,7 @@ fun MbtiDashboardScreen(
                 ShareBannerCard(
                     userNickname = user.nickname,
                     onShareKakao = {
-                        val shareMessage = "[${user.nickname}]이가 보는 내 MBTI는? 1분만에 평가해줘!\n내가 아는 나 vs 친구들이 보는 나의 MBTI Gap을 솔직하게 평가해주세요.\n👉 https://othermbti-app-2026.surge.sh/test?target=${user.uid}"
+                        val shareMessage = "🌸 [${user.nickname}]이가 보는 내 MBTI는? 1분만에 평가해줘!\n내가 아는 나 vs 친구들이 보는 나의 MBTI Gap을 솔직하게 평가해주세요.\n👉 https://othermbti-app-2026.surge.sh/test?target=${user.uid}"
                         val sendIntent = Intent(Intent.ACTION_SEND).apply {
                             type = "text/plain"
                             putExtra(Intent.EXTRA_SUBJECT, "[${user.nickname}]의 MBTI 평가 요청")
@@ -191,7 +192,7 @@ fun MbtiDashboardScreen(
                     StatCard(
                         modifier = Modifier.weight(1f),
                         icon = Icons.Default.Person,
-                        iconBg = PrimaryPurple.copy(alpha = 0.2f),
+                        iconBg = PrimaryPurple.copy(alpha = 0.15f),
                         iconTint = PrimaryPurple,
                         label = "총 참여 지인 수",
                         value = "${analytics.totalCount}명"
@@ -200,8 +201,8 @@ fun MbtiDashboardScreen(
                     StatCard(
                         modifier = Modifier.weight(1f),
                         icon = Icons.Default.Star,
-                        iconBg = KakaoYellow.copy(alpha = 0.2f),
-                        iconTint = KakaoYellow,
+                        iconBg = Color(0xFFFEF08A),
+                        iconTint = Color(0xFFA16207),
                         label = "가장 큰 MBTI 차이",
                         value = analytics.maxGapDimension
                     )
@@ -245,7 +246,7 @@ fun MbtiDashboardScreen(
             onDismiss = { showExportDialog = false },
             onShareInstagram = {
                 val storyUrl = "https://othermbti-app-2026.surge.sh/test?target=${user.uid}"
-                val shareText = "✨ [${user.nickname}] 님의 MBTI Gap 리포트!\n남이 본 내 MBTI: ${analytics.perceivedMbti}\n👉 나도 1분만에 평가해주기: $storyUrl"
+                val shareText = "🌸 [${user.nickname}] 님의 MBTI Gap 리포트!\n남이 본 내 MBTI: ${analytics.perceivedMbti}\n👉 나도 1분만에 평가해주기: $storyUrl"
                 
                 val sendIntent = Intent(Intent.ACTION_SEND).apply {
                     type = "text/plain"
@@ -271,8 +272,9 @@ fun MbtiDashboardScreen(
 fun ProfileSummaryCard(user: User, perceivedMbti: String) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = CardDarkBg)
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(containerColor = CardDarkBg),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Row(
             modifier = Modifier
@@ -299,7 +301,7 @@ fun ProfileSummaryCard(user: User, perceivedMbti: String) {
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Text(
                     text = user.nickname,
-                    color = Color.White,
+                    color = TextMain,
                     fontWeight = FontWeight.Bold,
                     fontSize = 18.sp
                 )
@@ -309,16 +311,16 @@ fun ProfileSummaryCard(user: User, perceivedMbti: String) {
                     fontSize = 13.sp
                 )
                 Surface(
-                    shape = RoundedCornerShape(6.dp),
-                    color = KakaoYellow.copy(alpha = 0.2f),
-                    border = CardDefaults.outlinedCardBorder().copy(brush = Brush.linearGradient(listOf(KakaoYellow, KakaoYellow)))
+                    shape = RoundedCornerShape(8.dp),
+                    color = Color(0xFFFEF08A),
+                    border = CardDefaults.outlinedCardBorder().copy(brush = Brush.linearGradient(listOf(Color(0xFFFACC15), Color(0xFFFACC15))))
                 ) {
                     Text(
                         text = "지인이 본 MBTI: $perceivedMbti",
-                        color = KakaoYellow,
+                        color = Color(0xFF854D0E),
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
                     )
                 }
             }
@@ -334,26 +336,27 @@ fun ShareBannerCard(
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF27272A))
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFFFCE7F3)),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
         Column(
             modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.AutoMirrored.Filled.Send, contentDescription = null, tint = KakaoYellow)
+                Icon(Icons.AutoMirrored.Filled.Send, contentDescription = null, tint = AccentPink)
                 Spacer(modifier = Modifier.width(8.dp))
                 Column {
                     Text(
-                        text = "친구들에게 평가 요청하기",
-                        color = KakaoYellow,
+                        text = "🎀 친구들에게 평가 요청하기",
+                        color = Color(0xFF9D174D),
                         fontWeight = FontWeight.Bold,
                         fontSize = 15.sp
                     )
                     Text(
                         text = "링크를 공유하고 솔직한 MBTI 진단을 받아보세요!",
-                        color = TextMuted,
+                        color = Color(0xFFBE185D),
                         fontSize = 12.sp
                     )
                 }
@@ -363,8 +366,8 @@ fun ShareBannerCard(
                 Button(
                     onClick = onShareKakao,
                     modifier = Modifier.weight(1f),
-                    colors = ButtonDefaults.buttonColors(containerColor = KakaoYellow, contentColor = KakaoBrown),
-                    shape = RoundedCornerShape(10.dp)
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFEE500), contentColor = KakaoBrown),
+                    shape = RoundedCornerShape(12.dp)
                 ) {
                     Text("카톡 공유", fontWeight = FontWeight.Bold)
                 }
@@ -372,9 +375,10 @@ fun ShareBannerCard(
                 OutlinedButton(
                     onClick = onCopyLink,
                     modifier = Modifier.weight(1f),
-                    shape = RoundedCornerShape(10.dp)
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFF9D174D))
                 ) {
-                    Text("링크 복사", color = Color.White)
+                    Text("링크 복사", fontWeight = FontWeight.Bold)
                 }
             }
         }
@@ -392,8 +396,9 @@ fun StatCard(
 ) {
     Card(
         modifier = modifier,
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = CardDarkBg)
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = CardDarkBg),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Row(
             modifier = Modifier.padding(14.dp),
@@ -403,7 +408,7 @@ fun StatCard(
             Box(
                 modifier = Modifier
                     .size(38.dp)
-                    .clip(RoundedCornerShape(10.dp))
+                    .clip(RoundedCornerShape(12.dp))
                     .background(iconBg),
                 contentAlignment = Alignment.Center
             ) {
@@ -411,7 +416,7 @@ fun StatCard(
             }
             Column {
                 Text(text = label, color = TextMuted, fontSize = 11.sp)
-                Text(text = value, color = Color.White, fontWeight = FontWeight.ExtraBold, fontSize = 14.sp)
+                Text(text = value, color = TextMain, fontWeight = FontWeight.ExtraBold, fontSize = 14.sp)
             }
         }
     }
@@ -421,8 +426,9 @@ fun StatCard(
 fun GapAnalyticsCard(userSelfMbti: String, analytics: com.example.othermbti.data.MbtiGapAnalytics) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = CardDarkBg)
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(containerColor = CardDarkBg),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(
             modifier = Modifier.padding(18.dp),
@@ -430,7 +436,7 @@ fun GapAnalyticsCard(userSelfMbti: String, analytics: com.example.othermbti.data
         ) {
             Text(
                 text = "📊 MBTI 지표별 Gap 분석",
-                color = Color.White,
+                color = TextMain,
                 fontWeight = FontWeight.Bold,
                 fontSize = 16.sp
             )
@@ -488,8 +494,8 @@ fun DimensionBarRow(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Text(text = title, color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
-            Text(text = "$labelLeft / $labelRight", color = AccentCyan, fontSize = 12.sp)
+            Text(text = title, color = TextMain, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+            Text(text = "$labelLeft / $labelRight", color = PrimaryPurple, fontSize = 12.sp, fontWeight = FontWeight.Bold)
         }
 
         Box(
@@ -497,7 +503,7 @@ fun DimensionBarRow(
                 .fillMaxWidth()
                 .height(14.dp)
                 .clip(RoundedCornerShape(7.dp))
-                .background(Color(0xFF0F172A))
+                .background(Color(0xFFEDE9FE))
         ) {
             Box(
                 modifier = Modifier
@@ -514,8 +520,9 @@ fun DimensionBarRow(
 fun KeywordsCard(topKeywords: List<KeywordRank>) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = CardDarkBg)
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(containerColor = CardDarkBg),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(
             modifier = Modifier.padding(18.dp),
@@ -528,7 +535,7 @@ fun KeywordsCard(topKeywords: List<KeywordRank>) {
             ) {
                 Text(
                     text = "🏷️ 지인들이 꼽은 내 대표 모습 TOP 3",
-                    color = Color.White,
+                    color = TextMain,
                     fontWeight = FontWeight.Bold,
                     fontSize = 15.sp
                 )
@@ -543,18 +550,23 @@ fun KeywordsCard(topKeywords: List<KeywordRank>) {
                         1 -> PrimaryPurple
                         else -> AccentCyan
                     }
+                    val bgPastel = when (idx) {
+                        0 -> Color(0xFFFCE7F3)
+                        1 -> Color(0xFFEDE9FE)
+                        else -> Color(0xFFE0F2FE)
+                    }
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clip(RoundedCornerShape(10.dp))
-                            .background(Color(0xFF0F172A))
-                            .padding(horizontal = 12.dp, vertical = 10.dp),
+                            .clip(RoundedCornerShape(14.dp))
+                            .background(bgPastel)
+                            .padding(horizontal = 14.dp, vertical = 12.dp),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
                             text = "${idx + 1}위  ${item.keyword}",
-                            color = Color.White,
+                            color = TextMain,
                             fontWeight = FontWeight.Bold,
                             fontSize = 13.sp
                         )
@@ -575,8 +587,9 @@ fun KeywordsCard(topKeywords: List<KeywordRank>) {
 fun EvaluatorsListCard(evaluations: List<Evaluation>) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = CardDarkBg)
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(containerColor = CardDarkBg),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(
             modifier = Modifier.padding(18.dp),
@@ -584,7 +597,7 @@ fun EvaluatorsListCard(evaluations: List<Evaluation>) {
         ) {
             Text(
                 text = "💬 실시간 지인 응답 목록",
-                color = Color.White,
+                color = TextMain,
                 fontWeight = FontWeight.Bold,
                 fontSize = 15.sp
             )
@@ -596,19 +609,19 @@ fun EvaluatorsListCard(evaluations: List<Evaluation>) {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clip(RoundedCornerShape(10.dp))
-                            .background(Color(0xFF0F172A))
+                            .clip(RoundedCornerShape(14.dp))
+                            .background(Color(0xFFFAF5FF))
                             .padding(12.dp),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
                             text = ev.evaluatorName,
-                            color = Color.White,
+                            color = TextMain,
                             fontSize = 13.sp
                         )
                         Surface(
-                            shape = RoundedCornerShape(6.dp),
+                            shape = RoundedCornerShape(8.dp),
                             color = PrimaryPurple.copy(alpha = 0.2f)
                         ) {
                             Text(
@@ -644,7 +657,7 @@ fun EditProfileDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("프로필 및 내 MBTI 설정", fontWeight = FontWeight.Bold) },
+        title = { Text("프로필 및 내 MBTI 설정", fontWeight = FontWeight.Bold, color = TextMain) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
                 OutlinedTextField(
@@ -654,7 +667,7 @@ fun EditProfileDialog(
                     singleLine = true
                 )
 
-                Text("내가 생각하는 내 MBTI", fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                Text("내가 생각하는 내 MBTI", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = TextMain)
 
                 val rows = mbtiList.chunked(4)
                 Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -669,7 +682,8 @@ fun EditProfileDialog(
                                     onClick = { selectedMbti = item },
                                     modifier = Modifier.weight(1f),
                                     colors = ButtonDefaults.buttonColors(
-                                        containerColor = if (isSel) PrimaryPurple else Color(0xFF334155)
+                                        containerColor = if (isSel) PrimaryPurple else Color(0xFFEDE9FE),
+                                        contentColor = if (isSel) Color.White else TextMain
                                     ),
                                     contentPadding = PaddingValues(4.dp)
                                 ) {
@@ -682,13 +696,13 @@ fun EditProfileDialog(
             }
         },
         confirmButton = {
-            Button(onClick = { onSave(nick, selectedMbti) }) {
+            Button(onClick = { onSave(nick, selectedMbti) }, colors = ButtonDefaults.buttonColors(containerColor = PrimaryPurple)) {
                 Text("저장")
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("취소")
+                Text("취소", color = TextMuted)
             }
         }
     )
@@ -710,13 +724,13 @@ fun ExportStoryDialog(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(Icons.Default.Share, contentDescription = null, tint = AccentPink)
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("📸 MBTI 갭 리포트 이미지 공유", fontWeight = FontWeight.Bold, fontSize = 17.sp)
+                Text("🌸 MBTI 갭 리포트 파스텔 공유", fontWeight = FontWeight.Bold, fontSize = 17.sp, color = TextMain)
             }
         },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Text(
-                    text = "원하는 이미지 템플릿 크기를 선택하세요:",
+                    text = "원하는 파스텔 템플릿 크기를 선택하세요:",
                     color = TextMuted,
                     fontSize = 13.sp
                 )
@@ -729,11 +743,11 @@ fun ExportStoryDialog(
                         .border(
                             width = 2.dp,
                             color = if (selectedTemplate == "insta") PrimaryPurple else Color.Transparent,
-                            shape = RoundedCornerShape(12.dp)
+                            shape = RoundedCornerShape(16.dp)
                         ),
-                    shape = RoundedCornerShape(12.dp),
+                    shape = RoundedCornerShape(16.dp),
                     colors = CardDefaults.cardColors(
-                        containerColor = if (selectedTemplate == "insta") Color(0xFF2E1065) else Color(0xFF1E293B)
+                        containerColor = if (selectedTemplate == "insta") Color(0xFFFCE7F3) else Color(0xFFFAF5FF)
                     )
                 ) {
                     Row(
@@ -743,8 +757,8 @@ fun ExportStoryDialog(
                     ) {
                         Icon(Icons.Default.CheckCircle, contentDescription = null, tint = if (selectedTemplate == "insta") AccentPink else TextMuted)
                         Column {
-                            Text("📱 9:16 인스타 스토리 전용", fontWeight = FontWeight.Bold, color = Color.White, fontSize = 14.sp)
-                            Text("1080x1920 세로형 트렌디 스티커 템플릿 (강력 추천)", color = TextMuted, fontSize = 11.sp)
+                            Text("📱 9:16 파스텔 인스타 스토리 전용", fontWeight = FontWeight.Bold, color = TextMain, fontSize = 14.sp)
+                            Text("1080x1920 세로형 파스텔 템플릿 (강력 추천)", color = TextMuted, fontSize = 11.sp)
                         }
                     }
                 }
@@ -757,11 +771,11 @@ fun ExportStoryDialog(
                         .border(
                             width = 2.dp,
                             color = if (selectedTemplate == "square") PrimaryPurple else Color.Transparent,
-                            shape = RoundedCornerShape(12.dp)
+                            shape = RoundedCornerShape(16.dp)
                         ),
-                    shape = RoundedCornerShape(12.dp),
+                    shape = RoundedCornerShape(16.dp),
                     colors = CardDefaults.cardColors(
-                        containerColor = if (selectedTemplate == "square") Color(0xFF2E1065) else Color(0xFF1E293B)
+                        containerColor = if (selectedTemplate == "square") Color(0xFFFCE7F3) else Color(0xFFFAF5FF)
                     )
                 ) {
                     Row(
@@ -771,8 +785,8 @@ fun ExportStoryDialog(
                     ) {
                         Icon(Icons.Default.CheckCircle, contentDescription = null, tint = if (selectedTemplate == "square") AccentPink else TextMuted)
                         Column {
-                            Text("🖼️ 3:4 피드 & 카톡 요약 카드", fontWeight = FontWeight.Bold, color = Color.White, fontSize = 14.sp)
-                            Text("600x800 피드 게시 및 기본 요약형 카드", color = TextMuted, fontSize = 11.sp)
+                            Text("🖼️ 3:4 파스텔 피드 & 카톡 카드", fontWeight = FontWeight.Bold, color = TextMain, fontSize = 14.sp)
+                            Text("600x800 피드 게시 및 요약형 카드", color = TextMuted, fontSize = 11.sp)
                         }
                     }
                 }
