@@ -2,7 +2,6 @@ package com.example.othermbti.ui
 
 import android.content.Intent
 import android.graphics.Bitmap
-
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.RectF
@@ -15,7 +14,6 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -67,6 +65,7 @@ fun MbtiDashboardScreen(
     val evaluations by repository.evaluations.collectAsState()
     var showEditDialog by remember { mutableStateOf(false) }
     var showExportDialog by remember { mutableStateOf(false) }
+    var showShareBottomSheet by remember { mutableStateOf(false) }
 
     val analytics = remember(user, evaluations) {
         repository.calculateAnalytics()
@@ -75,7 +74,7 @@ fun MbtiDashboardScreen(
     Scaffold(
         modifier = Modifier
             .fillMaxSize()
-            .systemBarsPadding(), // Ensures screen stays inside status bar & navigation bar
+            .systemBarsPadding(),
         containerColor = DeepDarkBg,
         bottomBar = {
             Surface(
@@ -161,40 +160,12 @@ fun MbtiDashboardScreen(
                 ProfileSummaryCard(user = user, perceivedMbti = analytics.perceivedMbti)
             }
 
-            // Share Banner Card with Real Android Share Intent
+            // Share Banner Card with Bottom Sheet Trigger
             item {
                 ShareBannerCard(
                     userNickname = user.nickname,
-                    onShareKakao = {
-                        val shareTitle = "🌸 [${user.nickname}]이가 보는 내 MBTI는? 1분만에 평가해줘!"
-                        val shareDesc = "내가 아는 나 vs 친구들이 보는 나의 MBTI Gap!\n아래 링크를 눌러 솔직하게 답변해주세요 🐣"
-                        val shareUrl = "https://othermbti-app-2026.surge.sh/test?target=${user.uid}"
-                        val shareMessage = "$shareTitle\n$shareDesc\n👉 $shareUrl"
-
-                        val sendIntent = Intent(Intent.ACTION_SEND).apply {
-                            type = "text/plain"
-                            putExtra(Intent.EXTRA_SUBJECT, shareTitle)
-                            putExtra(Intent.EXTRA_TEXT, shareMessage)
-                        }
-
-                        try {
-                            val kakaoIntent = Intent(sendIntent).apply {
-                                setPackage("com.kakao.talk")
-                            }
-                            context.startActivity(kakaoIntent)
-                            onShowToast("카카오톡 메시지 카드로 연동되었습니다!")
-                        } catch (e: Exception) {
-                            val chooser = Intent.createChooser(sendIntent, "카카오톡 메시지 카드 공유")
-                            context.startActivity(chooser)
-                        }
-                    },
-
-                    onCopyLink = {
-                        val clipboard = context.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
-                        val clip = android.content.ClipData.newPlainText("MBTI Test Link", "https://othermbti-app-2026.surge.sh/test?target=${user.uid}")
-                        clipboard.setPrimaryClip(clip)
-                        onShowToast("평가 링크가 클립보드에 복사되었습니다!")
-                    }
+                    onShareKakao = { showShareBottomSheet = true },
+                    onCopyLink = { showShareBottomSheet = true }
                 )
             }
 
@@ -243,7 +214,6 @@ fun MbtiDashboardScreen(
             item {
                 EvaluatorsListCard(userSelfMbti = user.selfMbti, evaluations = evaluations)
             }
-
         }
     }
 
@@ -295,6 +265,57 @@ fun MbtiDashboardScreen(
                     context.startActivity(chooser)
                 }
                 showExportDialog = false
+            }
+        )
+    }
+
+    if (showShareBottomSheet) {
+        ShareBottomSheetDialog(
+            userNickname = user.nickname,
+            targetUid = user.uid,
+            onDismiss = { showShareBottomSheet = false },
+            onShareKakaoDirect = {
+                val shareTitle = "🌸 [${user.nickname}]이가 보는 내 MBTI는? 1분만에 평가해줘!"
+                val shareDesc = "내가 아는 나 vs 친구들이 보는 나의 MBTI Gap!\n아래 링크를 눌러 솔직하게 답변해주세요 🐣"
+                val shareUrl = "https://othermbti-app-2026.surge.sh/test?target=${user.uid}"
+                val shareMessage = "$shareTitle\n$shareDesc\n👉 $shareUrl"
+
+                val sendIntent = Intent(Intent.ACTION_SEND).apply {
+                    type = "text/plain"
+                    putExtra(Intent.EXTRA_SUBJECT, shareTitle)
+                    putExtra(Intent.EXTRA_TEXT, shareMessage)
+                }
+
+                try {
+                    val kakaoIntent = Intent(sendIntent).apply {
+                        setPackage("com.kakao.talk")
+                    }
+                    context.startActivity(kakaoIntent)
+                    onShowToast("카카오톡으로 초댓장 메시지를 전송합니다!")
+                } catch (e: Exception) {
+                    val chooser = Intent.createChooser(sendIntent, "카카오톡 메시지 카드 공유")
+                    context.startActivity(chooser)
+                }
+            },
+            onShareSystemChooser = {
+                val shareTitle = "🌸 [${user.nickname}]이가 보는 내 MBTI는? 1분만에 평가해줘!"
+                val shareDesc = "내가 아는 나 vs 친구들이 보는 나의 MBTI Gap!\n아래 링크를 눌러 솔직하게 답변해주세요 🐣"
+                val shareUrl = "https://othermbti-app-2026.surge.sh/test?target=${user.uid}"
+                val shareMessage = "$shareTitle\n$shareDesc\n👉 $shareUrl"
+
+                val sendIntent = Intent(Intent.ACTION_SEND).apply {
+                    type = "text/plain"
+                    putExtra(Intent.EXTRA_SUBJECT, shareTitle)
+                    putExtra(Intent.EXTRA_TEXT, shareMessage)
+                }
+                val chooser = Intent.createChooser(sendIntent, "초대 링크 공유")
+                context.startActivity(chooser)
+            },
+            onCopyLink = {
+                val clipboard = context.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                val clip = android.content.ClipData.newPlainText("MBTI Test Link", "https://othermbti-app-2026.surge.sh/test?target=${user.uid}")
+                clipboard.setPrimaryClip(clip)
+                onShowToast("평가 링크가 클립보드에 복사되었습니다!")
             }
         )
     }
@@ -383,7 +404,6 @@ fun generateStoryImageUri(context: android.content.Context, userNickname: String
     }
 }
 
-
 @Composable
 fun ProfileSummaryCard(user: User, perceivedMbti: String) {
     Card(
@@ -471,7 +491,7 @@ fun ShareBannerCard(
                         fontSize = 15.sp
                     )
                     Text(
-                        text = "링크를 공유하고 솔직한 MBTI 진단을 받아보세요!",
+                        text = "하단 팝업 시트로 카카오톡 초댓장 메시지를 바로 전송하세요!",
                         color = Color(0xFFBE185D),
                         fontSize = 12.sp
                     )
@@ -836,7 +856,6 @@ fun EvaluatorsListCard(userSelfMbti: String, evaluations: List<Evaluation>) {
     }
 }
 
-
 @Composable
 fun EditProfileDialog(
     user: User,
@@ -998,6 +1017,136 @@ fun ExportStoryDialog(
                 Text("📱 스토리에 공유하기", fontWeight = FontWeight.Bold)
             }
         },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("닫기", color = TextMuted)
+            }
+        }
+    )
+}
+
+@Composable
+fun ShareBottomSheetDialog(
+    userNickname: String,
+    targetUid: String,
+    onDismiss: () -> Unit,
+    onShareKakaoDirect: () -> Unit,
+    onShareSystemChooser: () -> Unit,
+    onCopyLink: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Column {
+                Box(
+                    modifier = Modifier
+                        .width(44.dp)
+                        .height(5.dp)
+                        .clip(RoundedCornerShape(3.dp))
+                        .background(Color(0xFFCBD5E1))
+                        .align(Alignment.CenterHorizontally)
+                )
+                Spacer(modifier = Modifier.height(14.dp))
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.AutoMirrored.Filled.Send, contentDescription = null, tint = AccentPink)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("🌸 [$userNickname] 님의 MBTI 초댓장", fontWeight = FontWeight.Bold, fontSize = 17.sp, color = TextMain)
+                }
+            }
+        },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                Text("친구들에게 전송할 공유 방법을 선택하세요:", color = TextMuted, fontSize = 13.sp)
+
+                // Option 1: KakaoTalk Direct
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onShareKakaoDirect(); onDismiss() },
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFFFEF08A))
+                ) {
+                    Row(
+                        modifier = Modifier.padding(14.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(36.dp)
+                                .clip(CircleShape)
+                                .background(Color(0xFFFEE500)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text("💬", fontSize = 18.sp)
+                        }
+                        Column {
+                            Text("💛 카카오톡 친구 선택하여 전송", fontWeight = FontWeight.Bold, color = Color(0xFF713F12), fontSize = 14.sp)
+                            Text("카톡 메시지 카드로 바로 전달됩니다", color = Color(0xFFA16207), fontSize = 11.sp)
+                        }
+                    }
+                }
+
+                // Option 2: Message / System Chooser
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onShareSystemChooser(); onDismiss() },
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFFEDE9FE))
+                ) {
+                    Row(
+                        modifier = Modifier.padding(14.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(36.dp)
+                                .clip(CircleShape)
+                                .background(PrimaryPurple),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text("📱", fontSize = 18.sp)
+                        }
+                        Column {
+                            Text("💬 메시지 / 다른 공유 앱 선택", fontWeight = FontWeight.Bold, color = TextMain, fontSize = 14.sp)
+                            Text("SMS, 라인, 밴드 등 전송", color = TextMuted, fontSize = 11.sp)
+                        }
+                    }
+                }
+
+                // Option 3: Copy Link
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onCopyLink(); onDismiss() },
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFFFCE7F3))
+                ) {
+                    Row(
+                        modifier = Modifier.padding(14.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(36.dp)
+                                .clip(CircleShape)
+                                .background(AccentPink),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text("📋", fontSize = 18.sp)
+                        }
+                        Column {
+                            Text("📋 평가 링크 주소 복사", fontWeight = FontWeight.Bold, color = Color(0xFF9D174D), fontSize = 14.sp)
+                            Text("클립보드에 초댓장 URL 저장", color = Color(0xFFBE185D), fontSize = 11.sp)
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {},
         dismissButton = {
             TextButton(onClick = onDismiss) {
                 Text("닫기", color = TextMuted)
