@@ -175,9 +175,9 @@ fun MbtiDashboardScreen(
                     onShareKakao = {
                         runWithAd {
                             val shareTitle = "🌸 [모두의 MBTI] ${user.nickname} 님의 MBTI 1분 평가 초댓장!"
-                            val shareDesc = "내가 아는 나 vs 친구들이 보는 나의 MBTI Gap!\n아래 [평가하기] 버튼을 눌러 평가에 참여해보세요 🐣"
-                            val shareUrl = "https://othermbti-app-2026.surge.sh/test?target=${user.uid}"
-                            val shareMessage = "$shareTitle\n$shareDesc\n\n👉 [ 1분만에 평가하러 가기 🐣 ]\n$shareUrl"
+                            val shareDesc = "내가 아는 나 vs 친구들이 보는 나의 MBTI Gap!"
+                            val shareMessage = "$shareTitle\n$shareDesc\n\n👉 1분만에 평가하러 가기 🐣"
+
 
 
                             val sendIntent = Intent(Intent.ACTION_SEND).apply {
@@ -318,9 +318,9 @@ fun MbtiDashboardScreen(
             onDismiss = { showShareBottomSheet = false },
             onShareSystemChooser = {
                 val shareTitle = "🌸 [모두의 MBTI] ${user.nickname} 님의 MBTI 1분 평가 초댓장!"
-                val shareDesc = "내가 아는 나 vs 친구들이 보는 나의 MBTI Gap!\n아래 [평가하기] 버튼을 눌러 평가에 참여해보세요 🐣"
-                val shareUrl = "https://othermbti-app-2026.surge.sh/test?target=${user.uid}"
-                val shareMessage = "$shareTitle\n$shareDesc\n\n👉 [ 1분만에 평가하러 가기 🐣 ]\n$shareUrl"
+                val shareDesc = "내가 아는 나 vs 친구들이 보는 나의 MBTI Gap!"
+                val shareMessage = "$shareTitle\n$shareDesc\n\n👉 1분만에 평가하러 가기 🐣"
+
 
 
                 val sendIntent = Intent(Intent.ACTION_SEND).apply {
