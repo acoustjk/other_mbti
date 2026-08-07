@@ -703,6 +703,24 @@ function startSurvey(targetUid, customNick) {
 }
 
 
+function selectSurveyOption(trait) {
+  if (!state.survey) return;
+  const step = state.survey.currentStep || 0;
+  const q = QUESTIONS[step];
+  if (!q) return;
+
+  state.survey.answers[q.id] = trait;
+  renderSurveyStep();
+
+  // Auto-advance to next question after 250ms smooth touch feedback
+  setTimeout(() => {
+    if (state.survey && state.survey.currentStep === step && state.survey.currentStep < 10) {
+      state.survey.currentStep++;
+      renderSurveyStep();
+    }
+  }, 250);
+}
+
 function renderSurveyStep() {
   if (!state.survey) {
     state.survey = { currentStep: 0, answers: {}, selectedKeywords: [], evaluatorName: '', isAnonymous: false };
@@ -743,20 +761,20 @@ function renderSurveyStep() {
       const currentAns = state.survey.answers[q.id];
 
       const cardA = document.createElement('div');
-      cardA.className = `option-card ${currentAns === q.optA.trait ? 'selected' : ''}`;
+      cardA.className = `option-card opt-a ${currentAns === q.optA.trait ? 'selected' : ''}`;
       cardA.innerHTML = `<span>A. ${q.optA.text}</span><div class="option-radio"></div>`;
-      cardA.addEventListener('click', function() {
-        state.survey.answers[q.id] = q.optA.trait;
-        renderSurveyStep();
-      });
+      cardA.onclick = function(e) {
+        if (e) e.stopPropagation();
+        selectSurveyOption(q.optA.trait);
+      };
 
       const cardB = document.createElement('div');
-      cardB.className = `option-card ${currentAns === q.optB.trait ? 'selected' : ''}`;
+      cardB.className = `option-card opt-b ${currentAns === q.optB.trait ? 'selected' : ''}`;
       cardB.innerHTML = `<span>B. ${q.optB.text}</span><div class="option-radio"></div>`;
-      cardB.addEventListener('click', function() {
-        state.survey.answers[q.id] = q.optB.trait;
-        renderSurveyStep();
-      });
+      cardB.onclick = function(e) {
+        if (e) e.stopPropagation();
+        selectSurveyOption(q.optB.trait);
+      };
 
       optGroup.appendChild(cardA);
       optGroup.appendChild(cardB);
@@ -764,6 +782,7 @@ function renderSurveyStep() {
 
     if (btnNext) btnNext.innerHTML = '다음 <i class="fa-solid fa-chevron-right"></i>';
   } else if (step === 10) {
+
 
     questionBox.classList.add('hidden');
     keywordsBox.classList.remove('hidden');
