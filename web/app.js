@@ -279,12 +279,23 @@ function initUI() {
     showToast('데모 평가 데이터 5건이 초기화되었습니다!');
   });
 
+  // Auto Kakao Link trigger check
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.get('auto_kakao') === '1') {
+    const autoTarget = urlParams.get('target') || state.user.uid;
+    const autoNick = urlParams.get('nickname') || state.user.nickname;
+    setTimeout(() => {
+      sendKakaoRichFeedCard(autoNick, autoTarget);
+    }, 600);
+  }
+
   // Share Actions with Rewarded Interstitial Ad Integration
   document.getElementById('btnKakaoShare').addEventListener('click', () => {
     showRewardedAdThenExecute(() => {
       sendKakaoRichFeedCard(state.user.nickname, state.user.uid);
     });
   });
+
 
   document.getElementById('btnCloseKakaoModal').addEventListener('click', () => {
     document.getElementById('modalKakaoShare').classList.add('hidden');

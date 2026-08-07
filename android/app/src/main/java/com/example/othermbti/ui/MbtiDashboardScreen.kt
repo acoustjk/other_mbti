@@ -174,37 +174,17 @@ fun MbtiDashboardScreen(
                     userNickname = user.nickname,
                     onShareKakao = {
                         runWithAd {
-                            val shareTitle = "🌸 [모두의 MBTI] ${user.nickname} 님의 MBTI 1분 평가 초댓장!"
-                            val shareDesc = "내가 아는 나 vs 친구들이 보는 나의 MBTI Gap!\n아래 링크를 눌러 1분만에 평가해주세요 🐣"
-                            val shareUrl = "https://othermbti-app-2026.surge.sh/test?target=${user.uid}"
-                            val shareMessage = "$shareTitle\n$shareDesc\n\n👉 1분만에 평가하러 가기 🐣\n$shareUrl"
-
-
-
-
-                            val sendIntent = Intent(Intent.ACTION_SEND).apply {
-                                type = "text/plain"
-                                putExtra(Intent.EXTRA_SUBJECT, shareTitle)
-                                putExtra(Intent.EXTRA_TEXT, shareMessage)
-                                setPackage("com.kakao.talk")
-                            }
-
+                            val targetUri = Uri.parse("https://othermbti-app-2026.surge.sh/?auto_kakao=1&target=${user.uid}&nickname=${Uri.encode(user.nickname)}")
+                            val browserIntent = Intent(Intent.ACTION_VIEW, targetUri)
                             try {
-                                val kakaoChooser = Intent.createChooser(sendIntent, "💛 카카오톡 친구 / 채팅방 선택").apply {
-                                    putExtra(Intent.EXTRA_INITIAL_INTENTS, arrayOf(sendIntent))
-                                }
-                                context.startActivity(kakaoChooser)
-                                onShowToast("카카오톡 친구 선택 팝업을 엽니다!")
+                                context.startActivity(browserIntent)
+                                onShowToast("💛 카카오톡 전용 리치 피드 카드 초댓장을 보냅니다!")
                             } catch (e: Exception) {
-                                val fallbackIntent = Intent(Intent.ACTION_SEND).apply {
-                                    type = "text/plain"
-                                    putExtra(Intent.EXTRA_TEXT, shareMessage)
-                                }
-                                val chooser = Intent.createChooser(fallbackIntent, "카카오톡 친구 선택")
-                                context.startActivity(chooser)
+                                e.printStackTrace()
                             }
                         }
                     },
+
                     onCopyLink = {
                         runWithAd {
                             showShareBottomSheet = true
