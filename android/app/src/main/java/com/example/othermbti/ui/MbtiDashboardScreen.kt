@@ -176,7 +176,8 @@ fun MbtiDashboardScreen(
                         runWithAd {
                             val shareTitle = "🌸 [모두의 MBTI] ${user.nickname} 님의 MBTI 1분 평가 초댓장!"
                             val shareDesc = "내가 아는 나 vs 친구들이 보는 나의 MBTI Gap!\n아래 [1분만에 평가하러 가기] 링크를 눌러주세요 🐣"
-                            val shareUrl = "https://othermbti-app-2026.surge.sh/test?target=${user.uid}&nick=${Uri.encode(user.nickname)}"
+                            val shareUrl = "https://company-jk.com/mbti/test?target=${user.uid}&nick=${Uri.encode(user.nickname)}"
+
 
                             val shareMessage = "$shareTitle\n$shareDesc\n\n👉 1분만에 평가하러 가기 🐣\n$shareUrl"
 
@@ -323,7 +324,7 @@ fun MbtiDashboardScreen(
             onShareSystemChooser = {
                 val shareTitle = "🌸 [모두의 MBTI] ${user.nickname} 님의 MBTI 1분 평가 초댓장!"
                 val shareDesc = "내가 아는 나 vs 친구들이 보는 나의 MBTI Gap!\n아래 링크를 눌러 1분만에 평가해주세요 🐣"
-                val shareUrl = "https://othermbti-app-2026.surge.sh/test?target=${user.uid}&nick=${Uri.encode(user.nickname)}"
+                val shareUrl = "https://company-jk.com/mbti/test?target=${user.uid}&nick=${Uri.encode(user.nickname)}"
                 val shareMessage = "$shareTitle\n$shareDesc\n\n👉 1분만에 평가하러 가기 🐣\n$shareUrl"
 
                 val sendIntent = Intent(Intent.ACTION_SEND).apply {
@@ -336,10 +337,11 @@ fun MbtiDashboardScreen(
             },
             onCopyLink = {
                 val clipboard = context.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
-                val clip = android.content.ClipData.newPlainText("MBTI Test Link", "https://othermbti-app-2026.surge.sh/test?target=${user.uid}&nick=${Uri.encode(user.nickname)}")
+                val clip = android.content.ClipData.newPlainText("MBTI Test Link", "https://company-jk.com/mbti/test?target=${user.uid}&nick=${Uri.encode(user.nickname)}")
                 clipboard.setPrimaryClip(clip)
                 onShowToast("평가 링크가 클립보드에 복사되었습니다!")
             }
+
 
         )
     }

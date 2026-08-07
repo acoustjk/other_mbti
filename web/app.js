@@ -1156,7 +1156,8 @@ function draw916InstagramStoryCanvas(canvas, ctx, analytics) {
 
   ctx.fillStyle = '#475569';
   ctx.font = 'bold 24px "Outfit", sans-serif';
-  ctx.fillText(`https://othermbti-app-2026.surge.sh/test?target=${state.user.uid}`, 540, 1780);
+  ctx.fillText(`https://company-jk.com/mbti/test?target=${state.user.uid}`, 540, 1780);
+
   ctx.textAlign = 'left';
 }
 
