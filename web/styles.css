@@ -1303,9 +1303,51 @@ canvas {
   .status-pill-badge {
     display: none;
   }
-  .phone-frame {
-    border-width: 4px;
-    border-radius: 24px;
-  }
+/* Web Ad Banner Styling */
+.web-ad-banner {
+  margin-top: 20px;
+  background: #FFFFFF;
+  border: 1.5px dashed #C7D2FE;
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(129, 140, 248, 0.06);
+  transition: border-color 0.2s ease;
 }
+
+.web-ad-banner:hover {
+  border-color: #818CF8;
+}
+
+.ad-tag-badge {
+  position: absolute;
+  top: 6px;
+  right: 10px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #64748B;
+  background: #F1F5F9;
+  padding: 2px 6px;
+  border-radius: 4px;
+  letter-spacing: 0.5px;
+}
+
+.ad-safe-placeholder {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.85rem;
+  color: #1E1B4B;
+  cursor: pointer;
+}
+
+.ad-safe-placeholder .ad-icon {
+  font-size: 1.2rem;
+}
+
+.ad-safe-placeholder .ad-text strong {
+  color: #6D28D9;
+}
+
 
