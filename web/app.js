@@ -279,6 +279,27 @@ function initUI() {
     showToast('데모 평가 데이터 5건이 초기화되었습니다!');
   });
 
+  // URL Routing Check for Incoming Friend Survey Links (?target=... or /test)
+  const urlParams = new URLSearchParams(window.location.search);
+  const pathName = window.location.pathname;
+  const isSurveyRoute = urlParams.has('target') || pathName.includes('/test') || urlParams.get('mode') === 'survey';
+
+  if (isSurveyRoute) {
+    const targetUid = urlParams.get('target') || state.user.uid;
+    btnWebMode.classList.add('active');
+    btnAppMode.classList.remove('active');
+    webViewSection.classList.add('active');
+    appViewSection.classList.remove('active');
+    startSurvey(targetUid);
+  } else {
+    btnAppMode.classList.add('active');
+    btnWebMode.classList.remove('active');
+    appViewSection.classList.add('active');
+    webViewSection.classList.remove('active');
+    renderAppView();
+  }
+
+
   // Auto Kakao Link trigger check
   const urlParams = new URLSearchParams(window.location.search);
   if (urlParams.get('auto_kakao') === '1') {
