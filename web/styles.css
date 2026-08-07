@@ -782,53 +782,59 @@ body {
 }
 
 .option-card {
-  background: rgba(15, 23, 42, 0.5);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: #FFFFFF;
+  border: 2px solid #EDE9FE;
   border-radius: var(--radius-md);
-  padding: 16px 20px;
+  padding: 18px 20px;
   font-size: 0.95rem;
-  font-weight: 500;
+  font-weight: 600;
+  color: #1E1B4B;
   cursor: pointer;
   transition: all 0.2s ease;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  box-shadow: 0 4px 12px rgba(167, 139, 250, 0.08);
 }
 
 .option-card:hover {
-  background: rgba(99, 102, 241, 0.15);
-  border-color: rgba(99, 102, 241, 0.4);
-  transform: translateX(4px);
+  background: #F5F3FF;
+  border-color: #A78BFA;
+  transform: translateY(-2px);
 }
 
 .option-card.selected {
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.3), rgba(139, 92, 246, 0.3));
-  border-color: var(--primary-purple);
-  box-shadow: 0 4px 14px rgba(139, 92, 246, 0.3);
-  color: #FFF;
+  background: linear-gradient(135deg, #818CF8, #C084FC);
+  border-color: #818CF8;
+  box-shadow: 0 6px 20px rgba(129, 140, 248, 0.35);
+  color: #FFFFFF;
 }
 
 .option-radio {
-  width: 20px;
-  height: 20px;
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
-  border: 2px solid rgba(255, 255, 255, 0.3);
+  border: 2px solid #C7D2FE;
+  background: #FFF;
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
+  margin-left: 12px;
 }
 
 .option-card.selected .option-radio {
-  border-color: var(--kakao-yellow);
-  background: var(--kakao-yellow);
+  border-color: #FEF08A;
+  background: #FEF08A;
 }
 
 .option-card.selected .option-radio::after {
   content: '✓';
-  color: var(--kakao-brown);
-  font-size: 0.75rem;
+  color: #713F12;
+  font-size: 0.85rem;
   font-weight: 900;
 }
+
 
 /* Step 2 Keywords Selection Grid */
 .step-title {
