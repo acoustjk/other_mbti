@@ -164,8 +164,12 @@ function setupFirestoreRealtimeListener() {
       });
       if (liveEvals.length > 0) {
         state.evaluations = liveEvals;
-        renderAppView();
+        const appViewSection = document.getElementById('appViewSection');
+        if (appViewSection && appViewSection.classList.contains('active')) {
+          renderAppView();
+        }
       }
+
     }, (error) => {
       console.error('Firestore Realtime error:', error);
       showToast('Firestore 권한 확인 필요 (Rules 설정)');
