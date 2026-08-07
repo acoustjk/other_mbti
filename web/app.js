@@ -288,10 +288,18 @@ function initUI() {
     document.getElementById('modalKakaoShare').classList.add('hidden');
   });
 
+  const btnSendKakaoFeed = document.getElementById('btnSendKakaoFeed');
+  if (btnSendKakaoFeed) {
+    btnSendKakaoFeed.addEventListener('click', () => {
+      sendKakaoRichFeedCard(state.user.nickname, state.user.uid);
+    });
+  }
+
   document.getElementById('btnSimulateFriendClick').addEventListener('click', () => {
     document.getElementById('modalKakaoShare').classList.add('hidden');
     btnWebMode.click();
   });
+
 
   document.getElementById('btnCopyLink').addEventListener('click', () => {
     const fakeUrl = `https://othermbti-app-2026.surge.sh/test?target=${state.user.uid}`;
@@ -511,23 +519,71 @@ function renderAppView() {
     });
   }
 
+  // Chemistry Card
+  const bestChem = calculateMbtiCompatibilityWeb(state.user.self_mbti, 'ENFP');
+  const elemSelf = document.getElementById('chemSelfMbti');
+  if (elemSelf) elemSelf.textContent = state.user.self_mbti;
+  const elemGrade = document.getElementById('chemGrade');
+  if (elemGrade) elemGrade.textContent = bestChem.grade;
+  const elemTarget = document.getElementById('chemTargetMbti');
+  if (elemTarget) elemTarget.textContent = `${bestChem.targetMbti || 'ENFP'} (${bestChem.score}%)`;
+  const elemDesc = document.getElementById('chemDesc');
+  if (elemDesc) elemDesc.textContent = bestChem.desc;
+
   const listContainer = document.getElementById('evaluatorsList');
   listContainer.innerHTML = '';
   if (state.evaluations.length === 0) {
     listContainer.innerHTML = '<p class="text-muted">아직 참여한 지인이 없습니다.</p>';
   } else {
     state.evaluations.slice().reverse().forEach(ev => {
+      const chem = calculateMbtiCompatibilityWeb(state.user.self_mbti, ev.result_mbti);
       const item = document.createElement('div');
       item.className = 'evaluator-item';
       const timeStr = new Date(ev.created_at).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' });
       item.innerHTML = `
-        <span class="evaluator-name"><i class="fa-solid fa-user-tag"></i> ${ev.evaluator_name} <small style="color:#94A3B8;">(${timeStr})</small></span>
-        <span class="evaluator-result-tag">${ev.result_mbti}</span>
+        <div style="display: flex; flex-direction: column;">
+          <span class="evaluator-name"><i class="fa-solid fa-user-tag"></i> ${ev.evaluator_name} <small style="color:#94A3B8;">(${timeStr})</small></span>
+          <small style="color: #EC4899; font-weight: 700; font-size: 0.75rem;">${chem.grade}</small>
+        </div>
+        <span class="evaluator-result-tag">${ev.result_mbti} (${chem.score}%)</span>
       `;
       listContainer.appendChild(item);
     });
   }
 }
+
+function calculateMbtiCompatibilityWeb(selfMbti, friendMbti) {
+  if (!selfMbti || !friendMbti) {
+    return { score: 50, grade: "🌤️ 무난무난", desc: "서로를 맞춰가는 관계입니다.", targetMbti: "ENFP" };
+  }
+
+  const bestPairs = {
+    "INTJ": "ENFP", "INTP": "ENTJ", "ENTJ": "INTP", "ENTP": "INFJ",
+    "INFJ": "ENTP", "INFP": "ENFJ", "ENFJ": "INFP", "ENFP": "INTJ",
+    "ISTJ": "ESTP", "ISFJ": "ESFP", "ESTJ": "ISTP", "ESFJ": "ISFP",
+    "ISTP": "ESTJ", "ISFP": "ESFJ", "ESTP": "ISTJ", "ESFP": "ISFJ"
+  };
+
+  const bestTarget = bestPairs[selfMbti] || "ENFP";
+
+  if (bestTarget === friendMbti) {
+    return { score: 98, grade: "💖 천생연분 찰떡", desc: "서로의 부족함을 메워주는 최상의 시너지 케미!", targetMbti: bestTarget };
+  }
+
+  let matchCount = 0;
+  for (let i = 0; i < 4; i++) {
+    if (selfMbti[i] === friendMbti[i]) matchCount++;
+  }
+
+  switch (matchCount) {
+    case 4: return { score: 92, grade: "💖 도플갱어 케미", desc: "말하지 않아도 통하는 내 분신 같은 사이!", targetMbti: bestTarget };
+    case 3: return { score: 85, grade: "🤝 겉차속따 든든", desc: "비슷함 속에서도 신선한 자극을 주는 안정적인 케미!", targetMbti: bestTarget };
+    case 2: return { score: 70, grade: "🌤️ 무난무난 티키타카", desc: "서로의 차이를 인정할 때 더 재미있는 케미!", targetMbti: bestTarget };
+    case 1: return { score: 58, grade: "⚡ 색다른 자극 콤비", desc: "생각하는 방식은 달라도 호기심을 유발하는 관계!", targetMbti: bestTarget };
+    default: return { score: 45, grade: "⚡ 삐걱 톰과제리", desc: "투닥투닥거리면서 정드는 톰과 제리 케미!", targetMbti: bestTarget };
+  }
+}
+
 
 function renderMbtiGrid() {
   const container = document.getElementById('mbtiGrid');
@@ -1237,3 +1293,66 @@ function showToast(msg) {
     toast.classList.add('hidden');
   }, 3000);
 }
+
+function sendKakaoRichFeedCard(nickname, uid) {
+  const shareUrl = `https://othermbti-app-2026.surge.sh/test?target=${uid}`;
+  const title = `[${nickname}]이가 보는 내 MBTI는? 1분만에 평가해줘! 🌸`;
+  const description = `내가 아는 나 vs 친구들이 보는 나의 MBTI Gap! 솔직하게 평가해주세요.`;
+  const imageUrl = `https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=800&auto=format&fit=crop&q=80`;
+
+  if (window.Kakao) {
+    if (!window.Kakao.isInitialized()) {
+      try {
+        window.Kakao.init('b3a5198d070081d6833c829e30a5170d');
+      } catch (e) {
+        console.warn('Kakao init:', e);
+      }
+    }
+
+    if (window.Kakao.isInitialized() && window.Kakao.Share) {
+      try {
+        window.Kakao.Share.sendDefault({
+          objectType: 'feed',
+          content: {
+            title: title,
+            description: description,
+            imageUrl: imageUrl,
+            link: {
+              mobileWebUrl: shareUrl,
+              webUrl: shareUrl,
+            },
+          },
+          buttons: [
+            {
+              title: '1분만에 평가하러 가기 🐣',
+              link: {
+                mobileWebUrl: shareUrl,
+                webUrl: shareUrl,
+              },
+            },
+          ],
+        });
+        showToast('카카오톡 커스텀 리치 피드 카드가 전송되었습니다!');
+        return;
+      } catch (e) {
+        console.warn('Kakao Share sendDefault fallback:', e);
+      }
+    }
+  }
+
+  // Web Share or Clipboard Fallback
+  if (navigator.share) {
+    navigator.share({
+      title: title,
+      text: `${title}\n${description}\n👉 ${shareUrl}`,
+      url: shareUrl
+    }).then(() => {
+      showToast('카카오톡 / 메시지로 전송 완료되었습니다!');
+    }).catch(() => {});
+  } else {
+    navigator.clipboard.writeText(`${title}\n${description}\n👉 ${shareUrl}`).then(() => {
+      showToast('카톡 공유 문구가 클립보드에 복사되었습니다!');
+    });
+  }
+}
+

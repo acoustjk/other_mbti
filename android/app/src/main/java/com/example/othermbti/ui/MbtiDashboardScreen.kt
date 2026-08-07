@@ -157,10 +157,14 @@ fun MbtiDashboardScreen(
                 ShareBannerCard(
                     userNickname = user.nickname,
                     onShareKakao = {
-                        val shareMessage = "🌸 [${user.nickname}]이가 보는 내 MBTI는? 1분만에 평가해줘!\n내가 아는 나 vs 친구들이 보는 나의 MBTI Gap을 솔직하게 평가해주세요.\n👉 https://othermbti-app-2026.surge.sh/test?target=${user.uid}"
+                        val shareTitle = "🌸 [${user.nickname}]이가 보는 내 MBTI는? 1분만에 평가해줘!"
+                        val shareDesc = "내가 아는 나 vs 친구들이 보는 나의 MBTI Gap!\n아래 링크를 눌러 솔직하게 답변해주세요 🐣"
+                        val shareUrl = "https://othermbti-app-2026.surge.sh/test?target=${user.uid}"
+                        val shareMessage = "$shareTitle\n$shareDesc\n👉 $shareUrl"
+
                         val sendIntent = Intent(Intent.ACTION_SEND).apply {
                             type = "text/plain"
-                            putExtra(Intent.EXTRA_SUBJECT, "[${user.nickname}]의 MBTI 평가 요청")
+                            putExtra(Intent.EXTRA_SUBJECT, shareTitle)
                             putExtra(Intent.EXTRA_TEXT, shareMessage)
                         }
 
@@ -169,11 +173,13 @@ fun MbtiDashboardScreen(
                                 setPackage("com.kakao.talk")
                             }
                             context.startActivity(kakaoIntent)
+                            onShowToast("카카오톡 메시지 카드로 연동되었습니다!")
                         } catch (e: Exception) {
-                            val chooser = Intent.createChooser(sendIntent, "카카오톡 또는 친구에게 공유하기")
+                            val chooser = Intent.createChooser(sendIntent, "카카오톡 메시지 카드 공유")
                             context.startActivity(chooser)
                         }
                     },
+
                     onCopyLink = {
                         val clipboard = context.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
                         val clip = android.content.ClipData.newPlainText("MBTI Test Link", "https://othermbti-app-2026.surge.sh/test?target=${user.uid}")
@@ -219,10 +225,16 @@ fun MbtiDashboardScreen(
                 KeywordsCard(topKeywords = analytics.topKeywords)
             }
 
+            // MBTI Chemistry & Compatibility Radar Card
+            item {
+                MbtiChemistryCard(userSelfMbti = user.selfMbti, analytics = analytics)
+            }
+
             // Realtime Evaluators History
             item {
-                EvaluatorsListCard(evaluations = evaluations)
+                EvaluatorsListCard(userSelfMbti = user.selfMbti, evaluations = evaluations)
             }
+
         }
     }
 
@@ -584,7 +596,88 @@ fun KeywordsCard(topKeywords: List<KeywordRank>) {
 }
 
 @Composable
-fun EvaluatorsListCard(evaluations: List<Evaluation>) {
+fun MbtiChemistryCard(userSelfMbti: String, analytics: com.example.othermbti.data.MbtiGapAnalytics) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(containerColor = CardDarkBg),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(18.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "💘 MBTI 케미 & 궁합 매칭 레이더",
+                    color = TextMain,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp
+                )
+                Surface(
+                    shape = RoundedCornerShape(20.dp),
+                    color = Color(0xFFFCE7F3)
+                ) {
+                    Text(
+                        text = "찰떡 콤비 분석",
+                        color = AccentPink,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+                    )
+                }
+            }
+
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(18.dp))
+                    .background(Brush.linearGradient(listOf(Color(0xFFFCE7F3), Color(0xFFEDE9FE))))
+                    .padding(16.dp)
+            ) {
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column {
+                            Text(text = "내 MBTI ($userSelfMbti) 의 최고의 짝꿍", color = TextMuted, fontSize = 12.sp)
+                            Text(text = analytics.bestMatchGrade, color = Color(0xFF9D174D), fontWeight = FontWeight.ExtraBold, fontSize = 18.sp)
+                        }
+
+                        Surface(
+                            shape = RoundedCornerShape(12.dp),
+                            color = PrimaryPurple
+                        ) {
+                            Text(
+                                text = "${analytics.bestMatchMbti} (${analytics.bestMatchScore}%)",
+                                color = Color.White,
+                                fontWeight = FontWeight.ExtraBold,
+                                fontSize = 14.sp,
+                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                            )
+                        }
+                    }
+
+                    Text(
+                        text = analytics.bestMatchDesc,
+                        color = TextMain,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun EvaluatorsListCard(userSelfMbti: String, evaluations: List<Evaluation>) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(24.dp),
@@ -596,7 +689,7 @@ fun EvaluatorsListCard(evaluations: List<Evaluation>) {
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Text(
-                text = "💬 실시간 지인 응답 목록",
+                text = "💬 실시간 지인 응답 목록 & 궁합",
                 color = TextMain,
                 fontWeight = FontWeight.Bold,
                 fontSize = 15.sp
@@ -606,6 +699,7 @@ fun EvaluatorsListCard(evaluations: List<Evaluation>) {
                 Text(text = "아직 참여한 지인이 없습니다.", color = TextMuted, fontSize = 13.sp)
             } else {
                 evaluations.reversed().forEach { ev ->
+                    val chemistry = com.example.othermbti.data.calculateMbtiCompatibility(userSelfMbti, ev.resultMbti)
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -615,17 +709,16 @@ fun EvaluatorsListCard(evaluations: List<Evaluation>) {
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(
-                            text = ev.evaluatorName,
-                            color = TextMain,
-                            fontSize = 13.sp
-                        )
+                        Column {
+                            Text(text = ev.evaluatorName, color = TextMain, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                            Text(text = chemistry.matchGrade, color = AccentPink, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                        }
                         Surface(
                             shape = RoundedCornerShape(8.dp),
-                            color = PrimaryPurple.copy(alpha = 0.2f)
+                            color = PrimaryPurple.copy(alpha = 0.15f)
                         ) {
                             Text(
-                                text = ev.resultMbti,
+                                text = "${ev.resultMbti} (${chemistry.matchScore}%)",
                                 color = PrimaryPurple,
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 12.sp,
@@ -638,6 +731,7 @@ fun EvaluatorsListCard(evaluations: List<Evaluation>) {
         }
     }
 }
+
 
 @Composable
 fun EditProfileDialog(

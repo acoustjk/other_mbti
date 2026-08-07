@@ -1210,6 +1210,48 @@ canvas {
   to { opacity: 1; transform: translate(-50%, 0); }
 }
 
+/* MBTI Chemistry Radar Card */
+.chemistry-card {
+  margin-bottom: 20px;
+}
+.chemistry-banner {
+  background: linear-gradient(135deg, #FCE7F3, #EDE9FE);
+  border-radius: 18px;
+  padding: 16px 20px;
+  box-shadow: 0 4px 15px rgba(167, 139, 250, 0.15);
+  border: 1px solid rgba(244, 114, 182, 0.25);
+}
+.chem-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.chem-title {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+.chem-grade {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #9D174D;
+}
+.chem-target-mbti {
+  background: var(--primary-purple);
+  color: #FFF;
+  font-weight: 800;
+  font-size: 0.9rem;
+  padding: 6px 14px;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(167, 139, 250, 0.3);
+}
+.chem-desc {
+  font-size: 0.85rem;
+  color: var(--text-main);
+  font-weight: 600;
+}
+
 /* Responsive */
 @media (max-width: 600px) {
   .top-nav {
@@ -1230,3 +1272,4 @@ canvas {
     border-radius: 24px;
   }
 }
+

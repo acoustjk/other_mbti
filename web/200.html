@@ -16,6 +16,9 @@
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+  <!-- Kakao JavaScript SDK for KakaoTalk Link & Feed Cards -->
+  <script src="https://developers.kakao.com/sdk/js/kakao.min.js"></script>
+
 </head>
 <body>
   <!-- Header / Simulator Navigation -->
@@ -205,11 +208,32 @@
               </div>
             </div>
 
+            <!-- MBTI Chemistry & Compatibility Radar Card -->
+            <div class="chemistry-card glass-card">
+              <div class="card-header">
+                <h3><i class="fa-solid fa-heart-pulse"></i> MBTI 케미 & 궁합 매칭 레이더</h3>
+                <span class="top-tag" style="background: rgba(244, 114, 182, 0.2); color: #F472B6;">찰떡 콤비</span>
+              </div>
+              <div class="chemistry-body">
+                <div class="chemistry-banner" id="chemistryBanner">
+                  <div class="chem-header-row">
+                    <div>
+                      <div class="chem-title">내 MBTI (<span id="chemSelfMbti">INTJ</span>) 의 최고의 짝꿍</div>
+                      <div class="chem-grade" id="chemGrade">💖 천생연분 찰떡</div>
+                    </div>
+                    <div class="chem-target-mbti" id="chemTargetMbti">ENFP (98%)</div>
+                  </div>
+                  <div class="chem-desc" id="chemDesc">서로의 부족함을 메워주는 최상의 시너지 케미!</div>
+                </div>
+              </div>
+            </div>
+
             <!-- Friend Evaluation List -->
             <div class="evaluators-card glass-card">
               <div class="card-header">
-                <h3><i class="fa-solid fa-comments"></i> 실시간 지인 응답 목록</h3>
+                <h3><i class="fa-solid fa-comments"></i> 실시간 지인 응답 목록 & 궁합</h3>
               </div>
+
               <div class="evaluators-list" id="evaluatorsList">
                 <!-- Dynamically populated -->
               </div>
@@ -347,30 +371,34 @@
   <div class="modal-overlay hidden" id="modalKakaoShare">
     <div class="modal-card kakao-modal-card glass-card">
       <div class="modal-header">
-        <h3><i class="fa-solid fa-comment"></i> 카카오톡 공유 메시지 템플릿 예시</h3>
+        <h3><i class="fa-solid fa-comment"></i> 카카오톡 커스텀 리치 피드 카드</h3>
         <button id="btnCloseKakaoModal" class="close-btn">&times;</button>
       </div>
       <div class="modal-body">
         <div class="kakao-card-preview">
           <div class="kakao-thumb">
-            <i class="fa-solid fa-users-viewfinder"></i>
+            <i class="fa-solid fa-heart-pulse"></i>
             <span>MBTI GAP TEST</span>
           </div>
           <div class="kakao-content">
-            <h4 id="kakaoMsgTitle">[김타인]이가 보는 내 MBTI는? 1분만에 평가해줘!</h4>
-            <p>내가 아는 나 vs 친구들이 보는 나의 갭 분석! 아래 버튼을 눌러 솔직하게 답변해주세요.</p>
-            <div class="kakao-btn-preview">평가하러 가기 (웹으로 열기)</div>
+            <h4 id="kakaoMsgTitle">[김타인]이가 보는 내 MBTI는? 1분만에 평가해줘! 🌸</h4>
+            <p>내가 아는 나 vs 친구들이 보는 나의 MBTI Gap! 아래 버튼을 눌러 솔직하게 답변해주세요.</p>
+            <div class="kakao-btn-preview">1분만에 평가하러 가기 🐣</div>
           </div>
         </div>
-        <p class="share-notice"><i class="fa-solid fa-circle-check"></i> 실제 카카오톡 메시지 전송 API 템플릿과 100% 연동 규격이 적용되어 있습니다.</p>
+        <p class="share-notice"><i class="fa-solid fa-circle-check"></i> 카카오톡 SDK 리치 피드 템플릿(Custom Feed Card) 연동이 완료되었습니다.</p>
       </div>
-      <div class="modal-footer">
-        <button id="btnSimulateFriendClick" class="btn-accent">
-          <i class="fa-solid fa-arrow-right-to-bracket"></i> 지인 평가 링크 직접 진입해보기
+      <div class="modal-footer" style="display: flex; gap: 10px;">
+        <button id="btnSendKakaoFeed" class="btn-primary-gradient" style="flex: 1;">
+          <i class="fa-solid fa-paper-plane"></i> 카톡으로 메시지 카드 전송
+        </button>
+        <button id="btnSimulateFriendClick" class="btn-accent" style="flex: 1;">
+          <i class="fa-solid fa-arrow-right-to-bracket"></i> 지인 평가 직접 체험
         </button>
       </div>
     </div>
   </div>
+
 
   <!-- Export Card Canvas Modal -->
   <div class="modal-overlay hidden" id="modalExportCard">

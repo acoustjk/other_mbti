@@ -28,6 +28,14 @@ data class KeywordRank(
     val count: Int
 )
 
+data class MbtiChemistry(
+    val friendMbti: String,
+    val matchScore: Int,
+    val matchGrade: String,
+    val matchDescription: String,
+    val badgeBgColorHex: Long
+)
+
 data class MbtiGapAnalytics(
     val totalCount: Int,
     val perceivedMbti: String,
@@ -36,8 +44,62 @@ data class MbtiGapAnalytics(
     val pctT: Int, val pctF: Int,
     val pctJ: Int, val pctP: Int,
     val topKeywords: List<KeywordRank>,
-    val maxGapDimension: String
+    val maxGapDimension: String,
+    val bestMatchMbti: String = "ENFP",
+    val bestMatchScore: Int = 98,
+    val bestMatchGrade: String = "💖 천생연분 찰떡",
+    val bestMatchDesc: String = "서로의 부족함을 메워주는 최상의 시너지 케미!"
 )
+
+fun calculateMbtiCompatibility(selfMbti: String, friendMbti: String): MbtiChemistry {
+    if (selfMbti.isBlank() || friendMbti.isBlank()) {
+        return MbtiChemistry(friendMbti, 50, "🌤️ 무난무난", "서로를 맞춰가는 관계입니다.", 0xFFEDE9FE)
+    }
+
+    val bestPairs = mapOf(
+        "INTJ" to listOf("ENFP", "ENTP"),
+        "INTP" to listOf("ENTJ", "ESTJ"),
+        "ENTJ" to listOf("INTP", "INFP"),
+        "ENTP" to listOf("INFJ", "INTJ"),
+        "INFJ" to listOf("ENTP", "ENFP"),
+        "INFP" to listOf("ENFJ", "ENTJ"),
+        "ENFJ" to listOf("INFP", "ISFP"),
+        "ENFP" to listOf("INTJ", "INFJ"),
+        "ISTJ" to listOf("ESTP", "ESFP"),
+        "ISFJ" to listOf("ESFP", "ESTP"),
+        "ESTJ" to listOf("ISTP", "INTP"),
+        "ESFJ" to listOf("ISFP", "ISTP"),
+        "ISTP" to listOf("ESTJ", "ENTJ"),
+        "ISFP" to listOf("ESFJ", "ENFJ"),
+        "ESTP" to listOf("ISTJ", "ISFJ"),
+        "ESFP" to listOf("ISFJ", "ISTJ")
+    )
+
+    if (bestPairs[selfMbti]?.contains(friendMbti) == true) {
+        return MbtiChemistry(
+            friendMbti = friendMbti,
+            matchScore = 98,
+            matchGrade = "💖 천생연분 찰떡",
+            matchDescription = "서로의 부족함을 메워주는 최상의 시너지 케미!",
+            badgeBgColorHex = 0xFFFCE7F3
+        )
+    }
+
+    var matchCount = 0
+    for (i in 0 until 4) {
+        if (i < selfMbti.length && i < friendMbti.length && selfMbti[i] == friendMbti[i]) {
+            matchCount++
+        }
+    }
+
+    return when (matchCount) {
+        4 -> MbtiChemistry(friendMbti, 92, "💖 도플갱어 케미", "말하지 않아도 통하는 내 분신 같은 사이!", 0xFFFCE7F3)
+        3 -> MbtiChemistry(friendMbti, 85, "🤝 겉차속따 든든", "비슷함 속에서도 신선한 자극을 주는 안정적인 케미!", 0xFFEDE9FE)
+        2 -> MbtiChemistry(friendMbti, 70, "🌤️ 무난무난 티키타카", "서로의 차이를 인정할 때 더 재미있는 케미!", 0xFFE0F2FE)
+        1 -> MbtiChemistry(friendMbti, 58, "⚡ 색다른 자극 콤비", "생각하는 방식은 달라도 호기심을 유발하는 관계!", 0xFFFEF08A)
+        else -> MbtiChemistry(friendMbti, 45, "⚡ 삐걱 톰과제리", "투닥투닥거리면서 정드는 톰과 제리 케미!", 0xFFFEE2E2)
+    }
+}
 
 class MbtiRepository {
     private val _user = MutableStateFlow(User())
@@ -236,6 +298,8 @@ class MbtiRepository {
 
         val maxGapStr = "${gaps[0].first} (${gaps[0].second}%)"
 
+        val bestChem = calculateMbtiCompatibility(self, "ENFP")
+
         return MbtiGapAnalytics(
             totalCount = evals.size,
             perceivedMbti = perceivedMbti,
@@ -244,7 +308,11 @@ class MbtiRepository {
             pctT = pctT, pctF = pctF,
             pctJ = pctJ, pctP = pctP,
             topKeywords = topKeywords,
-            maxGapDimension = maxGapStr
+            maxGapDimension = maxGapStr,
+            bestMatchMbti = bestChem.friendMbti,
+            bestMatchScore = bestChem.matchScore,
+            bestMatchGrade = bestChem.matchGrade,
+            bestMatchDesc = bestChem.matchDescription
         )
     }
 }
