@@ -28,6 +28,12 @@
                 android:resource="@xml/file_paths" />
         </provider>
 
+        <!-- Google AdMob Application ID -->
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="ca-app-pub-5254974097452914~6238198724" />
+
     </application>
+
 
 </manifest>
