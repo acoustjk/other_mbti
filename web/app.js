@@ -704,7 +704,10 @@ function startSurvey(targetUid, customNick) {
 
 
 function renderSurveyStep() {
-  const step = state.survey.currentStep;
+  if (!state.survey) {
+    state.survey = { currentStep: 0, answers: {}, selectedKeywords: [], evaluatorName: '', isAnonymous: false };
+  }
+  const step = state.survey.currentStep || 0;
 
   const questionBox = document.getElementById('questionBox');
   const keywordsBox = document.getElementById('keywordsSelectBox');
@@ -714,46 +717,54 @@ function renderSurveyStep() {
   const btnPrev = document.getElementById('btnPrevQuestion');
   const btnNext = document.getElementById('btnNextQuestion');
 
-  btnPrev.disabled = (step === 0);
+  if (btnPrev) btnPrev.disabled = (step === 0);
 
   if (step < 10) {
-    questionBox.classList.remove('hidden');
-    keywordsBox.classList.add('hidden');
-    infoBox.classList.add('hidden');
-    navBtns.classList.remove('hidden');
+    if (questionBox) questionBox.classList.remove('hidden');
+    if (keywordsBox) keywordsBox.classList.add('hidden');
+    if (infoBox) infoBox.classList.add('hidden');
+    if (navBtns) navBtns.classList.remove('hidden');
 
-    const q = QUESTIONS[step];
-    document.getElementById('questionStepText').textContent = `문항 ${step + 1} / 10`;
-    document.getElementById('progressPercent').textContent = `${(step + 1) * 9}%`;
-    document.getElementById('progressFill').style.width = `${(step + 1) * 9}%`;
-    document.getElementById('questionTitle').textContent = q.title;
+    const q = QUESTIONS[step] || QUESTIONS[0];
+    const qStepEl = document.getElementById('questionStepText');
+    const pPercEl = document.getElementById('progressPercent');
+    const pFillEl = document.getElementById('progressFill');
+    const qTitleEl = document.getElementById('questionTitle');
+
+    if (qStepEl) qStepEl.textContent = `문항 ${step + 1} / 10`;
+    if (pPercEl) pPercEl.textContent = `${(step + 1) * 10}%`;
+    if (pFillEl) pFillEl.style.width = `${(step + 1) * 10}%`;
+    if (qTitleEl) qTitleEl.textContent = q.title;
 
     const optGroup = document.getElementById('optionsGroup');
-    optGroup.innerHTML = '';
+    if (optGroup) {
+      optGroup.innerHTML = '';
 
-    const currentAns = state.survey.answers[q.id];
+      const currentAns = state.survey.answers[q.id];
 
-    const cardA = document.createElement('div');
-    cardA.className = `option-card ${currentAns === q.optA.trait ? 'selected' : ''}`;
-    cardA.innerHTML = `<span>${q.optA.text}</span><div class="option-radio"></div>`;
-    cardA.addEventListener('click', () => {
-      state.survey.answers[q.id] = q.optA.trait;
-      renderSurveyStep();
-    });
+      const cardA = document.createElement('div');
+      cardA.className = `option-card ${currentAns === q.optA.trait ? 'selected' : ''}`;
+      cardA.innerHTML = `<span>A. ${q.optA.text}</span><div class="option-radio"></div>`;
+      cardA.addEventListener('click', function() {
+        state.survey.answers[q.id] = q.optA.trait;
+        renderSurveyStep();
+      });
 
-    const cardB = document.createElement('div');
-    cardB.className = `option-card ${currentAns === q.optB.trait ? 'selected' : ''}`;
-    cardB.innerHTML = `<span>${q.optB.text}</span><div class="option-radio"></div>`;
-    cardB.addEventListener('click', () => {
-      state.survey.answers[q.id] = q.optB.trait;
-      renderSurveyStep();
-    });
+      const cardB = document.createElement('div');
+      cardB.className = `option-card ${currentAns === q.optB.trait ? 'selected' : ''}`;
+      cardB.innerHTML = `<span>B. ${q.optB.text}</span><div class="option-radio"></div>`;
+      cardB.addEventListener('click', function() {
+        state.survey.answers[q.id] = q.optB.trait;
+        renderSurveyStep();
+      });
 
-    optGroup.appendChild(cardA);
-    optGroup.appendChild(cardB);
+      optGroup.appendChild(cardA);
+      optGroup.appendChild(cardB);
+    }
 
-    btnNext.innerHTML = '다음 <i class="fa-solid fa-chevron-right"></i>';
+    if (btnNext) btnNext.innerHTML = '다음 <i class="fa-solid fa-chevron-right"></i>';
   } else if (step === 10) {
+
     questionBox.classList.add('hidden');
     keywordsBox.classList.remove('hidden');
     infoBox.classList.add('hidden');
