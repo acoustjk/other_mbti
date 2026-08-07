@@ -16,7 +16,8 @@
   <script>
     (function() {
       var href = window.location.href;
-      if (href.indexOf('target=') !== -1 || href.indexOf('/test') !== -1 || href.indexOf('mode=survey') !== -1) {
+      if (href.indexOf('target=') !== -1 || href.indexOf('/test') !== -1 || href.indexOf('/mbti') !== -1 || href.indexOf('mode=survey') !== -1) {
+
         document.documentElement.classList.add('is-survey-mode');
       }
     })();

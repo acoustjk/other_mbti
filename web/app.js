@@ -286,7 +286,8 @@ function initUI() {
   // URL Routing Check for Incoming Friend Survey Links (?target=... or /test)
   const href = window.location.href;
   const urlParams = new URLSearchParams(window.location.search);
-  const isSurveyRoute = href.includes('target=') || href.includes('/test') || href.includes('mode=survey');
+  const isSurveyRoute = href.includes('target=') || href.includes('/test') || href.includes('/mbti') || href.includes('mode=survey');
+
 
   if (isSurveyRoute) {
     let targetUid = urlParams.get('target');
