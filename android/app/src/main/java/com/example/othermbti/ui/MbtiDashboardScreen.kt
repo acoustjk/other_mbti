@@ -1158,8 +1158,18 @@ fun ShareBottomSheetDialog(
     )
 }
 
-const val ADMOB_APP_ID = "ca-app-pub-5254974097452914~6238198724"
-const val ADMOB_REWARDED_AD_UNIT_ID = "ca-app-pub-5254974097452914/7135247341"
+// Google AdMob Safety Configuration
+// IMPORTANT: Set IS_PRODUCTION_AD = false during testing/pre-release to avoid AdMob account ban due to invalid impressions.
+const val IS_PRODUCTION_AD = false 
+
+const val PROD_ADMOB_APP_ID = "ca-app-pub-5254974097452914~6238198724"
+const val PROD_ADMOB_REWARDED_AD_UNIT_ID = "ca-app-pub-5254974097452914/7135247341"
+
+// Google Official Safe Test Ad Unit ID for Rewarded Interstitial
+const val TEST_ADMOB_REWARDED_AD_UNIT_ID = "ca-app-pub-3940256099942544/5354046379"
+
+val ACTIVE_ADMOB_REWARDED_AD_UNIT_ID = if (IS_PRODUCTION_AD) PROD_ADMOB_REWARDED_AD_UNIT_ID else TEST_ADMOB_REWARDED_AD_UNIT_ID
+
 
 @Composable
 fun AdRewardDialog(
