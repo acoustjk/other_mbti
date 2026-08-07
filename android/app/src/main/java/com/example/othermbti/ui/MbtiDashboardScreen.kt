@@ -160,14 +160,44 @@ fun MbtiDashboardScreen(
                 ProfileSummaryCard(user = user, perceivedMbti = analytics.perceivedMbti)
             }
 
-            // Share Banner Card with Bottom Sheet Trigger
+            // Share Banner Card with Direct Kakao Chooser & Link Copy Bottom Sheet
             item {
                 ShareBannerCard(
                     userNickname = user.nickname,
-                    onShareKakao = { showShareBottomSheet = true },
-                    onCopyLink = { showShareBottomSheet = true }
+                    onShareKakao = {
+                        val shareTitle = "🌸 [${user.nickname}]이가 보는 내 MBTI는? 1분만에 평가해줘!"
+                        val shareDesc = "내가 아는 나 vs 친구들이 보는 나의 MBTI Gap!\n아래 링크를 눌러 솔직하게 답변해주세요 🐣"
+                        val shareUrl = "https://othermbti-app-2026.surge.sh/test?target=${user.uid}"
+                        val shareMessage = "$shareTitle\n$shareDesc\n👉 $shareUrl"
+
+                        val sendIntent = Intent(Intent.ACTION_SEND).apply {
+                            type = "text/plain"
+                            putExtra(Intent.EXTRA_SUBJECT, shareTitle)
+                            putExtra(Intent.EXTRA_TEXT, shareMessage)
+                            setPackage("com.kakao.talk")
+                        }
+
+                        try {
+                            val kakaoChooser = Intent.createChooser(sendIntent, "💛 카카오톡 친구 / 채팅방 선택").apply {
+                                putExtra(Intent.EXTRA_INITIAL_INTENTS, arrayOf(sendIntent))
+                            }
+                            context.startActivity(kakaoChooser)
+                            onShowToast("카카오톡 친구 선택 팝업을 엽니다!")
+                        } catch (e: Exception) {
+                            val fallbackIntent = Intent(Intent.ACTION_SEND).apply {
+                                type = "text/plain"
+                                putExtra(Intent.EXTRA_TEXT, shareMessage)
+                            }
+                            val chooser = Intent.createChooser(fallbackIntent, "카카오톡 친구 선택")
+                            context.startActivity(chooser)
+                        }
+                    },
+                    onCopyLink = {
+                        showShareBottomSheet = true
+                    }
                 )
             }
+
 
             // Quick Stats Grid
             item {
@@ -274,35 +304,6 @@ fun MbtiDashboardScreen(
             userNickname = user.nickname,
             targetUid = user.uid,
             onDismiss = { showShareBottomSheet = false },
-            onShareKakaoDirect = {
-                val shareTitle = "🌸 [${user.nickname}]이가 보는 내 MBTI는? 1분만에 평가해줘!"
-                val shareDesc = "내가 아는 나 vs 친구들이 보는 나의 MBTI Gap!\n아래 링크를 눌러 솔직하게 답변해주세요 🐣"
-                val shareUrl = "https://othermbti-app-2026.surge.sh/test?target=${user.uid}"
-                val shareMessage = "$shareTitle\n$shareDesc\n👉 $shareUrl"
-
-                val sendIntent = Intent(Intent.ACTION_SEND).apply {
-                    type = "text/plain"
-                    putExtra(Intent.EXTRA_SUBJECT, shareTitle)
-                    putExtra(Intent.EXTRA_TEXT, shareMessage)
-                    setPackage("com.kakao.talk")
-                }
-
-                try {
-                    val kakaoChooser = Intent.createChooser(sendIntent, "💛 카카오톡 친구 / 채팅방 선택").apply {
-                        putExtra(Intent.EXTRA_INITIAL_INTENTS, arrayOf(sendIntent))
-                    }
-                    context.startActivity(kakaoChooser)
-                    onShowToast("카카오톡 친구 선택 팝업을 엽니다!")
-                } catch (e: Exception) {
-                    val fallbackIntent = Intent(Intent.ACTION_SEND).apply {
-                        type = "text/plain"
-                        putExtra(Intent.EXTRA_TEXT, shareMessage)
-                    }
-                    val chooser = Intent.createChooser(fallbackIntent, "카카오톡 친구 선택")
-                    context.startActivity(chooser)
-                }
-            },
-
             onShareSystemChooser = {
                 val shareTitle = "🌸 [${user.nickname}]이가 보는 내 MBTI는? 1분만에 평가해줘!"
                 val shareDesc = "내가 아는 나 vs 친구들이 보는 나의 MBTI Gap!\n아래 링크를 눌러 솔직하게 답변해주세요 🐣"
@@ -325,6 +326,7 @@ fun MbtiDashboardScreen(
             }
         )
     }
+
 }
 
 fun generateStoryImageUri(context: android.content.Context, userNickname: String, selfMbti: String, perceivedMbti: String, targetUid: String): Uri? {
@@ -1036,7 +1038,6 @@ fun ShareBottomSheetDialog(
     userNickname: String,
     targetUid: String,
     onDismiss: () -> Unit,
-    onShareKakaoDirect: () -> Unit,
     onShareSystemChooser: () -> Unit,
     onCopyLink: () -> Unit
 ) {
@@ -1056,44 +1057,15 @@ fun ShareBottomSheetDialog(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(Icons.AutoMirrored.Filled.Send, contentDescription = null, tint = AccentPink)
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("🌸 [$userNickname] 님의 MBTI 초댓장", fontWeight = FontWeight.Bold, fontSize = 17.sp, color = TextMain)
+                    Text("🌸 [$userNickname] 님의 MBTI 초댓장 공유", fontWeight = FontWeight.Bold, fontSize = 17.sp, color = TextMain)
                 }
             }
         },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                Text("친구들에게 전송할 공유 방법을 선택하세요:", color = TextMuted, fontSize = 13.sp)
+                Text("친구들에게 보낼 공유 옵션을 선택하세요:", color = TextMuted, fontSize = 13.sp)
 
-                // Option 1: KakaoTalk Direct
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { onShareKakaoDirect(); onDismiss() },
-                    shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFFFEF08A))
-                ) {
-                    Row(
-                        modifier = Modifier.padding(14.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .size(36.dp)
-                                .clip(CircleShape)
-                                .background(Color(0xFFFEE500)),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text("💬", fontSize = 18.sp)
-                        }
-                        Column {
-                            Text("💛 카카오톡 친구 선택하여 전송", fontWeight = FontWeight.Bold, color = Color(0xFF713F12), fontSize = 14.sp)
-                            Text("카톡 메시지 카드로 바로 전달됩니다", color = Color(0xFFA16207), fontSize = 11.sp)
-                        }
-                    }
-                }
-
-                // Option 2: Message / System Chooser
+                // Option 1: Message / System Chooser
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -1122,7 +1094,7 @@ fun ShareBottomSheetDialog(
                     }
                 }
 
-                // Option 3: Copy Link
+                // Option 2: Copy Link
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -1160,3 +1132,4 @@ fun ShareBottomSheetDialog(
         }
     )
 }
+
