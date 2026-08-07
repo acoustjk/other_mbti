@@ -1,12 +1,21 @@
 package com.example.othermbti.ui
 
 import android.content.Intent
+import android.graphics.Bitmap
+
+import android.graphics.Canvas
+import android.graphics.Paint
+import android.graphics.RectF
 import android.net.Uri
+import androidx.core.content.FileProvider
+import java.io.File
+import java.io.FileOutputStream
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -257,20 +266,31 @@ fun MbtiDashboardScreen(
             targetUid = user.uid,
             onDismiss = { showExportDialog = false },
             onShareInstagram = {
-                val storyUrl = "https://othermbti-app-2026.surge.sh/test?target=${user.uid}"
-                val shareText = "🌸 [${user.nickname}] 님의 MBTI Gap 리포트!\n남이 본 내 MBTI: ${analytics.perceivedMbti}\n👉 나도 1분만에 평가해주기: $storyUrl"
-                
-                val sendIntent = Intent(Intent.ACTION_SEND).apply {
-                    type = "text/plain"
-                    putExtra(Intent.EXTRA_TEXT, shareText)
-                }
-
-                try {
-                    val instaIntent = Intent(sendIntent).apply {
-                        setPackage("com.instagram.android")
+                val imageUri = generateStoryImageUri(context, user.nickname, user.selfMbti, analytics.perceivedMbti, user.uid)
+                if (imageUri != null) {
+                    val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                        type = "image/png"
+                        putExtra(Intent.EXTRA_STREAM, imageUri)
+                        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                     }
-                    context.startActivity(instaIntent)
-                } catch (e: Exception) {
+
+                    try {
+                        val instaIntent = Intent(shareIntent).apply {
+                            setPackage("com.instagram.android")
+                        }
+                        context.startActivity(instaIntent)
+                        onShowToast("9:16 파스텔 스토리 이미지를 인스타그램 앱으로 전달합니다!")
+                    } catch (e: Exception) {
+                        val chooser = Intent.createChooser(shareIntent, "📸 9:16 인스타 스토리 / 이미지 카드로 공유")
+                        context.startActivity(chooser)
+                    }
+                } else {
+                    val storyUrl = "https://othermbti-app-2026.surge.sh/test?target=${user.uid}"
+                    val shareText = "🌸 [${user.nickname}] 님의 MBTI Gap 리포트!\n남이 본 내 MBTI: ${analytics.perceivedMbti}\n👉 나도 1분만에 평가해주기: $storyUrl"
+                    val sendIntent = Intent(Intent.ACTION_SEND).apply {
+                        type = "text/plain"
+                        putExtra(Intent.EXTRA_TEXT, shareText)
+                    }
                     val chooser = Intent.createChooser(sendIntent, "인스타그램 또는 공유 앱 선택")
                     context.startActivity(chooser)
                 }
@@ -279,6 +299,90 @@ fun MbtiDashboardScreen(
         )
     }
 }
+
+fun generateStoryImageUri(context: android.content.Context, userNickname: String, selfMbti: String, perceivedMbti: String, targetUid: String): Uri? {
+    try {
+        val width = 1080
+        val height = 1920
+        val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(bitmap)
+        val paint = Paint(Paint.ANTI_ALIAS_FLAG)
+
+        paint.color = android.graphics.Color.parseColor("#FFF5F8")
+        canvas.drawRect(0f, 0f, width.toFloat(), height.toFloat(), paint)
+
+        paint.color = android.graphics.Color.parseColor("#EDE9FE")
+        val headerRect = RectF(80f, 100f, 530f, 160f)
+        canvas.drawRoundRect(headerRect, 30f, 30f, paint)
+
+        paint.color = android.graphics.Color.parseColor("#6D28D9")
+        paint.textSize = 26f
+        paint.isFakeBoldText = true
+        canvas.drawText("🌸 MBTI GAP INSIGHT REPORT", 110f, 140f, paint)
+
+        paint.color = android.graphics.Color.parseColor("#2E1065")
+        paint.textSize = 48f
+        paint.isFakeBoldText = true
+        canvas.drawText("$userNickname 님의 MBTI 갭", 195f, 275f, paint)
+
+        paint.color = android.graphics.Color.parseColor("#FCE7F3")
+        val selfBox = RectF(100f, 395f, 480f, 565f)
+        canvas.drawRoundRect(selfBox, 28f, 28f, paint)
+
+        paint.color = android.graphics.Color.parseColor("#DB2777")
+        paint.textSize = 24f
+        paint.isFakeBoldText = false
+        canvas.drawText("내가 생각한 나 (Self)", 130f, 435f, paint)
+
+        paint.textSize = 64f
+        paint.isFakeBoldText = true
+        canvas.drawText(selfMbti, 130f, 520f, paint)
+
+        paint.color = android.graphics.Color.parseColor("#FEF08A")
+        val friendBox = RectF(580f, 395f, 960f, 565f)
+        canvas.drawRoundRect(friendBox, 28f, 28f, paint)
+
+        paint.color = android.graphics.Color.parseColor("#854D0E")
+        paint.textSize = 24f
+        paint.isFakeBoldText = false
+        canvas.drawText("지인이 본 나 (Friends)", 610f, 435f, paint)
+
+        paint.textSize = 64f
+        paint.isFakeBoldText = true
+        canvas.drawText(perceivedMbti, 610f, 520f, paint)
+
+        paint.color = android.graphics.Color.parseColor("#FEF08A")
+        val ctaBox = RectF(60f, 1680f, 1020f, 1810f)
+        canvas.drawRoundRect(ctaBox, 40f, 40f, paint)
+
+        paint.color = android.graphics.Color.parseColor("#713F12")
+        paint.textSize = 34f
+        paint.isFakeBoldText = true
+        canvas.drawText("🐣 \"너도 나 어떤지 1분만에 평가해줘!\"", 150f, 1735f, paint)
+
+        paint.textSize = 24f
+        paint.isFakeBoldText = false
+        canvas.drawText("https://othermbti-app-2026.surge.sh/test?target=$targetUid", 150f, 1780f, paint)
+
+        val imagesFolder = File(context.cacheDir, "shared_images")
+        imagesFolder.mkdirs()
+        val file = File(imagesFolder, "mbti_story_card.png")
+        val stream = FileOutputStream(file)
+        bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream)
+        stream.flush()
+        stream.close()
+
+        return FileProvider.getUriForFile(
+            context,
+            "com.example.othermbti.fileprovider",
+            file
+        )
+    } catch (e: Exception) {
+        e.printStackTrace()
+        return null
+    }
+}
+
 
 @Composable
 fun ProfileSummaryCard(user: User, perceivedMbti: String) {
