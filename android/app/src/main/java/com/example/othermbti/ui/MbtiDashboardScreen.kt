@@ -284,19 +284,25 @@ fun MbtiDashboardScreen(
                     type = "text/plain"
                     putExtra(Intent.EXTRA_SUBJECT, shareTitle)
                     putExtra(Intent.EXTRA_TEXT, shareMessage)
+                    setPackage("com.kakao.talk")
                 }
 
                 try {
-                    val kakaoIntent = Intent(sendIntent).apply {
-                        setPackage("com.kakao.talk")
+                    val kakaoChooser = Intent.createChooser(sendIntent, "💛 카카오톡 친구 / 채팅방 선택").apply {
+                        putExtra(Intent.EXTRA_INITIAL_INTENTS, arrayOf(sendIntent))
                     }
-                    context.startActivity(kakaoIntent)
-                    onShowToast("카카오톡으로 초댓장 메시지를 전송합니다!")
+                    context.startActivity(kakaoChooser)
+                    onShowToast("카카오톡 친구 선택 팝업을 엽니다!")
                 } catch (e: Exception) {
-                    val chooser = Intent.createChooser(sendIntent, "카카오톡 메시지 카드 공유")
+                    val fallbackIntent = Intent(Intent.ACTION_SEND).apply {
+                        type = "text/plain"
+                        putExtra(Intent.EXTRA_TEXT, shareMessage)
+                    }
+                    val chooser = Intent.createChooser(fallbackIntent, "카카오톡 친구 선택")
                     context.startActivity(chooser)
                 }
             },
+
             onShareSystemChooser = {
                 val shareTitle = "🌸 [${user.nickname}]이가 보는 내 MBTI는? 1분만에 평가해줘!"
                 val shareDesc = "내가 아는 나 vs 친구들이 보는 나의 MBTI Gap!\n아래 링크를 눌러 솔직하게 답변해주세요 🐣"
