@@ -101,8 +101,15 @@ fun calculateMbtiCompatibility(selfMbti: String, friendMbti: String): MbtiChemis
     }
 }
 
-class MbtiRepository {
-    private val _user = MutableStateFlow(User())
+class MbtiRepository(context: android.content.Context? = null) {
+    private val prefs = context?.getSharedPreferences("user_prefs", android.content.Context.MODE_PRIVATE)
+
+    private val _user = MutableStateFlow(
+        User(
+            nickname = prefs?.getString("nickname", "나") ?: "나",
+            selfMbti = prefs?.getString("selfMbti", "INTJ") ?: "INTJ"
+        )
+    )
     val user: StateFlow<User> = _user.asStateFlow()
 
     private val _evaluations = MutableStateFlow<List<Evaluation>>(emptyList())
@@ -114,6 +121,7 @@ class MbtiRepository {
         seedInitialDemoData()
         initFirestoreLiveSync()
     }
+
 
     private fun initFirestoreLiveSync() {
         try {
@@ -213,7 +221,9 @@ class MbtiRepository {
 
     fun updateUser(newNickname: String, newSelfMbti: String) {
         _user.value = _user.value.copy(nickname = newNickname, selfMbti = newSelfMbti)
+        prefs?.edit()?.putString("nickname", newNickname)?.putString("selfMbti", newSelfMbti)?.apply()
     }
+
 
     fun addEvaluation(evaluation: Evaluation) {
         _evaluations.value = _evaluations.value + evaluation

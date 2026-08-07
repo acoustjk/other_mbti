@@ -15,7 +15,8 @@ fun MainScreen(
   modifier: Modifier = Modifier
 ) {
   val context = LocalContext.current
-  val repository = remember { MbtiRepository() }
+  val repository = remember(context) { MbtiRepository(context) }
+
 
   MbtiDashboardScreen(
     repository = repository,
