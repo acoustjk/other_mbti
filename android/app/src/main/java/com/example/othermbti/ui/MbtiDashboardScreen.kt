@@ -66,6 +66,13 @@ fun MbtiDashboardScreen(
     var showEditDialog by remember { mutableStateOf(false) }
     var showExportDialog by remember { mutableStateOf(false) }
     var showShareBottomSheet by remember { mutableStateOf(false) }
+    var showAdDialog by remember { mutableStateOf(false) }
+    var pendingAction by remember { mutableStateOf<(() -> Unit)?>(null) }
+
+    fun runWithAd(action: () -> Unit) {
+        pendingAction = action
+        showAdDialog = true
+    }
 
     val analytics = remember(user, evaluations) {
         repository.calculateAnalytics()
@@ -84,7 +91,7 @@ fun MbtiDashboardScreen(
                 color = Color.Transparent
             ) {
                 Button(
-                    onClick = { showExportDialog = true },
+                    onClick = { runWithAd { showExportDialog = true } },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(52.dp),
@@ -160,44 +167,47 @@ fun MbtiDashboardScreen(
                 ProfileSummaryCard(user = user, perceivedMbti = analytics.perceivedMbti)
             }
 
-            // Share Banner Card with Direct Kakao Chooser & Link Copy Bottom Sheet
+            // Share Banner Card with Direct Kakao Chooser & Link Copy Bottom Sheet (Ad Rewarded)
             item {
                 ShareBannerCard(
                     userNickname = user.nickname,
                     onShareKakao = {
-                        val shareTitle = "🌸 [${user.nickname}]이가 보는 내 MBTI는? 1분만에 평가해줘!"
-                        val shareDesc = "내가 아는 나 vs 친구들이 보는 나의 MBTI Gap!\n아래 링크를 눌러 솔직하게 답변해주세요 🐣"
-                        val shareUrl = "https://othermbti-app-2026.surge.sh/test?target=${user.uid}"
-                        val shareMessage = "$shareTitle\n$shareDesc\n👉 $shareUrl"
+                        runWithAd {
+                            val shareTitle = "🌸 [${user.nickname}]이가 보는 내 MBTI는? 1분만에 평가해줘!"
+                            val shareDesc = "내가 아는 나 vs 친구들이 보는 나의 MBTI Gap!\n아래 링크를 눌러 솔직하게 답변해주세요 🐣"
+                            val shareUrl = "https://othermbti-app-2026.surge.sh/test?target=${user.uid}"
+                            val shareMessage = "$shareTitle\n$shareDesc\n👉 $shareUrl"
 
-                        val sendIntent = Intent(Intent.ACTION_SEND).apply {
-                            type = "text/plain"
-                            putExtra(Intent.EXTRA_SUBJECT, shareTitle)
-                            putExtra(Intent.EXTRA_TEXT, shareMessage)
-                            setPackage("com.kakao.talk")
-                        }
-
-                        try {
-                            val kakaoChooser = Intent.createChooser(sendIntent, "💛 카카오톡 친구 / 채팅방 선택").apply {
-                                putExtra(Intent.EXTRA_INITIAL_INTENTS, arrayOf(sendIntent))
-                            }
-                            context.startActivity(kakaoChooser)
-                            onShowToast("카카오톡 친구 선택 팝업을 엽니다!")
-                        } catch (e: Exception) {
-                            val fallbackIntent = Intent(Intent.ACTION_SEND).apply {
+                            val sendIntent = Intent(Intent.ACTION_SEND).apply {
                                 type = "text/plain"
+                                putExtra(Intent.EXTRA_SUBJECT, shareTitle)
                                 putExtra(Intent.EXTRA_TEXT, shareMessage)
+                                setPackage("com.kakao.talk")
                             }
-                            val chooser = Intent.createChooser(fallbackIntent, "카카오톡 친구 선택")
-                            context.startActivity(chooser)
+
+                            try {
+                                val kakaoChooser = Intent.createChooser(sendIntent, "💛 카카오톡 친구 / 채팅방 선택").apply {
+                                    putExtra(Intent.EXTRA_INITIAL_INTENTS, arrayOf(sendIntent))
+                                }
+                                context.startActivity(kakaoChooser)
+                                onShowToast("카카오톡 친구 선택 팝업을 엽니다!")
+                            } catch (e: Exception) {
+                                val fallbackIntent = Intent(Intent.ACTION_SEND).apply {
+                                    type = "text/plain"
+                                    putExtra(Intent.EXTRA_TEXT, shareMessage)
+                                }
+                                val chooser = Intent.createChooser(fallbackIntent, "카카오톡 친구 선택")
+                                context.startActivity(chooser)
+                            }
                         }
                     },
                     onCopyLink = {
-                        showShareBottomSheet = true
+                        runWithAd {
+                            showShareBottomSheet = true
+                        }
                     }
                 )
             }
-
 
             // Quick Stats Grid
             item {
@@ -327,6 +337,16 @@ fun MbtiDashboardScreen(
         )
     }
 
+    if (showAdDialog) {
+        AdRewardDialog(
+            onDismiss = { showAdDialog = false },
+            onAdCompleted = {
+                showAdDialog = false
+                pendingAction?.invoke()
+                pendingAction = null
+            }
+        )
+    }
 }
 
 fun generateStoryImageUri(context: android.content.Context, userNickname: String, selfMbti: String, perceivedMbti: String, targetUid: String): Uri? {
@@ -499,7 +519,7 @@ fun ShareBannerCard(
                         fontSize = 15.sp
                     )
                     Text(
-                        text = "하단 팝업 시트로 카카오톡 초댓장 메시지를 바로 전송하세요!",
+                        text = "스폰서 광고 시청 후 카카오톡 전용 선택 팝업이 활성화됩니다!",
                         color = Color(0xFFBE185D),
                         fontSize = 12.sp
                     )
@@ -1133,3 +1153,83 @@ fun ShareBottomSheetDialog(
     )
 }
 
+@Composable
+fun AdRewardDialog(
+    onDismiss: () -> Unit,
+    onAdCompleted: () -> Unit
+) {
+    var countdown by remember { mutableStateOf(3) }
+
+    LaunchedEffect(Unit) {
+        while (countdown > 0) {
+            kotlinx.coroutines.delay(1000L)
+            countdown--
+        }
+        onAdCompleted()
+    }
+
+    AlertDialog(
+        onDismissRequest = {},
+        title = {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Surface(
+                    shape = RoundedCornerShape(20.dp),
+                    color = Color(0xFFFEF08A)
+                ) {
+                    Text(
+                        text = "🎬 스폰서 전면 광고 (3초)",
+                        color = Color(0xFF713F12),
+                        fontWeight = FontWeight.ExtraBold,
+                        fontSize = 12.sp,
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+                    )
+                }
+            }
+        },
+        text = {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(20.dp),
+                colors = CardDefaults.cardColors(containerColor = Color(0xFF1E1B4B))
+            ) {
+                Column(
+                    modifier = Modifier.padding(20.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Text("🎁", fontSize = 40.sp)
+                    Text(
+                        text = "MBTI 프리미엄 갭 분석 스폰서",
+                        color = Color(0xFFFEF08A),
+                        fontWeight = FontWeight.ExtraBold,
+                        fontSize = 16.sp,
+                        textAlign = TextAlign.Center
+                    )
+                    Text(
+                        text = "스폰서 광고 시청 혜택으로 무료 갭 분석 리포트와 고화질 템플릿을 무제한 공유할 수 있습니다.",
+                        color = Color(0xFFCBD5E1),
+                        fontSize = 12.sp,
+                        textAlign = TextAlign.Center
+                    )
+                    Surface(
+                        shape = RoundedCornerShape(16.dp),
+                        color = PrimaryPurple.copy(alpha = 0.3f),
+                        border = CardDefaults.outlinedCardBorder().copy(brush = Brush.linearGradient(listOf(PrimaryPurple, AccentPink)))
+                    ) {
+                        Text(
+                            text = "⏱️ 광고 시청 중... ${countdown}초 남음",
+                            color = AccentPink,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 14.sp,
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                        )
+                    }
+                }
+            }
+        },
+        confirmButton = {}
+    )
+}

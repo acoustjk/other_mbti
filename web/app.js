@@ -279,9 +279,11 @@ function initUI() {
     showToast('데모 평가 데이터 5건이 초기화되었습니다!');
   });
 
-  // Share Actions
+  // Share Actions with Rewarded Interstitial Ad Integration
   document.getElementById('btnKakaoShare').addEventListener('click', () => {
-    document.getElementById('modalKakaoShare').classList.remove('hidden');
+    showRewardedAdThenExecute(() => {
+      sendKakaoRichFeedCard(state.user.nickname, state.user.uid);
+    });
   });
 
   document.getElementById('btnCloseKakaoModal').addEventListener('click', () => {
@@ -300,15 +302,12 @@ function initUI() {
     btnWebMode.click();
   });
 
-
   document.getElementById('btnCopyLink').addEventListener('click', () => {
-    const fakeUrl = `https://othermbti-app-2026.surge.sh/test?target=${state.user.uid}`;
-    navigator.clipboard.writeText(fakeUrl).then(() => {
-      showToast('평가 링크가 클립보드에 복사되었습니다!');
-    }).catch(() => {
-      showToast('링크 복사 완료: ' + fakeUrl);
+    showRewardedAdThenExecute(() => {
+      document.getElementById('modalKakaoShare').classList.remove('hidden');
     });
   });
+
 
   // Profile Edit Modal
   const modalProfile = document.getElementById('modalProfile');
@@ -1355,4 +1354,30 @@ function sendKakaoRichFeedCard(nickname, uid) {
     });
   }
 }
+
+function showRewardedAdThenExecute(callback) {
+  const modalAd = document.getElementById('modalAdReward');
+  const cdElem = document.getElementById('adCountdown');
+  if (!modalAd || !cdElem) {
+    if (typeof callback === 'function') callback();
+    return;
+  }
+
+  let seconds = 3;
+  cdElem.textContent = seconds;
+  modalAd.classList.remove('hidden');
+
+  const timer = setInterval(() => {
+    seconds--;
+    cdElem.textContent = seconds;
+    if (seconds <= 0) {
+      clearInterval(timer);
+      modalAd.classList.add('hidden');
+      if (typeof callback === 'function') {
+        callback();
+      }
+    }
+  }, 1000);
+}
+
 
