@@ -135,16 +135,17 @@ fun MbtiDashboardScreen(
                 ) {
                     Column {
                         Text(
-                            text = "🌸 내 MBTI 갭 리포트",
+                            text = "🌸 모두의 MBTI",
                             color = TextMain,
                             fontSize = 22.sp,
                             fontWeight = FontWeight.ExtraBold
                         )
                         Text(
-                            text = "지인들이 바라본 나 vs 내가 아는 나",
+                            text = "지인들이 바라본 나 vs 내가 아는 내 MBTI 갭 리포트",
                             color = TextMuted,
                             fontSize = 13.sp
                         )
+
                     }
 
                     IconButton(

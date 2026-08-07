@@ -1295,8 +1295,9 @@ function showToast(msg) {
 
 function sendKakaoRichFeedCard(nickname, uid) {
   const shareUrl = `https://othermbti-app-2026.surge.sh/test?target=${uid}`;
-  const title = `[${nickname}]이가 보는 내 MBTI는? 1분만에 평가해줘! 🌸`;
+  const title = `🌸 [모두의 MBTI] ${nickname} 님의 MBTI 1분 평가 초댓장!`;
   const description = `내가 아는 나 vs 친구들이 보는 나의 MBTI Gap! 솔직하게 평가해주세요.`;
+
   const imageUrl = `https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=800&auto=format&fit=crop&q=80`;
 
   if (window.Kakao) {
