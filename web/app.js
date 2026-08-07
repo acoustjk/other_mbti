@@ -688,13 +688,14 @@ function startSurvey(targetUid, customNick) {
       .then(doc => {
         if (doc.exists) {
           const uData = doc.data();
-          if (uData.nickname) {
+          if (uData.nickname && uData.nickname !== '김타인' && !nickFromUrl) {
             displayNickname = uData.nickname;
             state.survey.targetNickname = displayNickname;
             document.getElementById('surveyTargetName').textContent = displayNickname;
             document.getElementById('surveyTargetAvatar').textContent = displayNickname.charAt(0);
             document.getElementById('completeTargetName').textContent = displayNickname;
           }
+
         }
       })
       .catch(e => console.warn('Firestore fetch user:', e));
