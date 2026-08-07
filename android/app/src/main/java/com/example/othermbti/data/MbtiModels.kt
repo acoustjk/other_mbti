@@ -101,8 +101,8 @@ fun calculateMbtiCompatibility(selfMbti: String, friendMbti: String): MbtiChemis
     }
 }
 
-class MbtiRepository(context: android.content.Context? = null) {
-    private val prefs = context?.getSharedPreferences("user_prefs", android.content.Context.MODE_PRIVATE)
+class MbtiRepository(private val appContext: android.content.Context? = null) {
+    private val prefs = appContext?.getSharedPreferences("user_prefs", android.content.Context.MODE_PRIVATE)
 
     private val _user = MutableStateFlow(
         User(
@@ -123,6 +123,9 @@ class MbtiRepository(context: android.content.Context? = null) {
     }
 
 
+    private var isInitialSyncDone = false
+    private val knownEvalIds = mutableSetOf<String>()
+
     private fun initFirestoreLiveSync() {
         try {
             db = FirebaseFirestore.getInstance()
@@ -131,6 +134,8 @@ class MbtiRepository(context: android.content.Context? = null) {
                 ?.addSnapshotListener { snapshot, error ->
                     if (error != null || snapshot == null) return@addSnapshotListener
                     val liveList = mutableListOf<Evaluation>()
+                    val newlyArrivedList = mutableListOf<Evaluation>()
+
                     for (doc in snapshot.documents) {
                         val evalId = doc.getString("evaluation_id") ?: doc.id
                         val targetUid = doc.getString("target_uid") ?: ""
@@ -147,18 +152,34 @@ class MbtiRepository(context: android.content.Context? = null) {
                             }
                         }
 
-                        liveList.add(
-                            Evaluation(
-                                evaluationId = evalId,
-                                targetUid = targetUid,
-                                evaluatorName = name,
-                                scores = scores,
-                                resultMbti = resMbti,
-                                selectedKeywords = keywords,
-                                createdAt = created
-                            )
+                        val evalObj = Evaluation(
+                            evaluationId = evalId,
+                            targetUid = targetUid,
+                            evaluatorName = name,
+                            scores = scores,
+                            resultMbti = resMbti,
+                            selectedKeywords = keywords,
+                            createdAt = created
                         )
+
+                        liveList.add(evalObj)
+
+                        if (!knownEvalIds.contains(evalId)) {
+                            knownEvalIds.add(evalId)
+                            if (isInitialSyncDone) {
+                                newlyArrivedList.add(evalObj)
+                            }
+                        }
                     }
+
+                    if (!isInitialSyncDone) {
+                        isInitialSyncDone = true
+                    } else if (newlyArrivedList.isNotEmpty() && appContext != null) {
+                        val latest = newlyArrivedList.last()
+                        triggerNewEvaluationNotification(appContext, latest.evaluatorName, latest.resultMbti)
+                    }
+
+
                     if (liveList.isNotEmpty()) {
                         _evaluations.value = liveList
                     }
@@ -167,6 +188,7 @@ class MbtiRepository(context: android.content.Context? = null) {
             e.printStackTrace()
         }
     }
+
 
     private fun seedInitialDemoData() {
         val now = System.currentTimeMillis()
@@ -326,3 +348,52 @@ class MbtiRepository(context: android.content.Context? = null) {
         )
     }
 }
+
+private const val CHANNEL_ID = "mbti_eval_channel"
+
+private fun createNotificationChannel(context: android.content.Context) {
+    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+        val name = "MBTI 평가 도착 알림"
+        val descriptionText = "지인이 내 MBTI를 솔직하게 평가했을 때 푸시 알림을 발송합니다."
+        val importance = android.app.NotificationManager.IMPORTANCE_HIGH
+        val channel = android.app.NotificationChannel(CHANNEL_ID, name, importance).apply {
+            description = descriptionText
+            enableVibration(true)
+            vibrationPattern = longArrayOf(0, 250, 100, 250)
+        }
+        val notificationManager = context.getSystemService(android.content.Context.NOTIFICATION_SERVICE) as android.app.NotificationManager
+        notificationManager.createNotificationChannel(channel)
+    }
+}
+
+fun triggerNewEvaluationNotification(context: android.content.Context, evaluatorName: String, resultMbti: String) {
+    try {
+        createNotificationChannel(context)
+        val intent = android.content.Intent(context, com.example.othermbti.MainActivity::class.java).apply {
+            flags = android.content.Intent.FLAG_ACTIVITY_CLEAR_TOP or android.content.Intent.FLAG_ACTIVITY_SINGLE_TOP
+        }
+        val pendingIntent = android.app.PendingIntent.getActivity(
+            context,
+            0,
+            intent,
+            android.app.PendingIntent.FLAG_UPDATE_CURRENT or android.app.PendingIntent.FLAG_IMMUTABLE
+        )
+
+        val builder = androidx.core.app.NotificationCompat.Builder(context, CHANNEL_ID)
+            .setSmallIcon(android.R.drawable.ic_dialog_info)
+            .setContentTitle("🌸 [모두의 MBTI] 새로운 지인 응답 도착!")
+            .setContentText("${evaluatorName} 님이 내 MBTI 평가를 마쳤습니다! (${resultMbti})")
+            .setStyle(androidx.core.app.NotificationCompat.BigTextStyle()
+                .bigText("🐣 ${evaluatorName} 님이 내 MBTI 솔직 평가를 완료했습니다.\n추측한 MBTI: [${resultMbti}]\n지금 앱에서 내가 아는 나 vs 친구들이 보는 나의 MBTI Gap을 확인해보세요!"))
+            .setPriority(androidx.core.app.NotificationCompat.PRIORITY_HIGH)
+            .setDefaults(androidx.core.app.NotificationCompat.DEFAULT_ALL)
+            .setAutoCancel(true)
+            .setContentIntent(pendingIntent)
+
+        val notificationManager = context.getSystemService(android.content.Context.NOTIFICATION_SERVICE) as android.app.NotificationManager
+        notificationManager.notify((System.currentTimeMillis() % 10000).toInt(), builder.build())
+    } catch (e: Exception) {
+        e.printStackTrace()
+    }
+}
+
