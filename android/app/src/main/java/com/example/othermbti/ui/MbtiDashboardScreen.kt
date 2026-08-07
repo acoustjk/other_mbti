@@ -174,10 +174,11 @@ fun MbtiDashboardScreen(
                     userNickname = user.nickname,
                     onShareKakao = {
                         runWithAd {
-                            val shareTitle = "🌸 [${user.nickname}]이가 보는 내 MBTI는? 1분만에 평가해줘!"
-                            val shareDesc = "내가 아는 나 vs 친구들이 보는 나의 MBTI Gap!\n아래 링크를 눌러 솔직하게 답변해주세요 🐣"
+                            val shareTitle = "🌸 [모두의 MBTI] ${user.nickname} 님의 MBTI 1분 평가 초댓장!"
+                            val shareDesc = "내가 아는 나 vs 친구들이 보는 나의 MBTI Gap!\n아래 [평가하기] 버튼을 눌러 평가에 참여해보세요 🐣"
                             val shareUrl = "https://othermbti-app-2026.surge.sh/test?target=${user.uid}"
-                            val shareMessage = "$shareTitle\n$shareDesc\n👉 $shareUrl"
+                            val shareMessage = "$shareTitle\n$shareDesc\n\n👉 [ 1분만에 평가하러 가기 🐣 ]\n$shareUrl"
+
 
                             val sendIntent = Intent(Intent.ACTION_SEND).apply {
                                 type = "text/plain"
@@ -316,10 +317,11 @@ fun MbtiDashboardScreen(
             targetUid = user.uid,
             onDismiss = { showShareBottomSheet = false },
             onShareSystemChooser = {
-                val shareTitle = "🌸 [${user.nickname}]이가 보는 내 MBTI는? 1분만에 평가해줘!"
-                val shareDesc = "내가 아는 나 vs 친구들이 보는 나의 MBTI Gap!\n아래 링크를 눌러 솔직하게 답변해주세요 🐣"
+                val shareTitle = "🌸 [모두의 MBTI] ${user.nickname} 님의 MBTI 1분 평가 초댓장!"
+                val shareDesc = "내가 아는 나 vs 친구들이 보는 나의 MBTI Gap!\n아래 [평가하기] 버튼을 눌러 평가에 참여해보세요 🐣"
                 val shareUrl = "https://othermbti-app-2026.surge.sh/test?target=${user.uid}"
-                val shareMessage = "$shareTitle\n$shareDesc\n👉 $shareUrl"
+                val shareMessage = "$shareTitle\n$shareDesc\n\n👉 [ 1분만에 평가하러 가기 🐣 ]\n$shareUrl"
+
 
                 val sendIntent = Intent(Intent.ACTION_SEND).apply {
                     type = "text/plain"
@@ -408,11 +410,13 @@ fun generateStoryImageUri(context: android.content.Context, userNickname: String
         paint.color = android.graphics.Color.parseColor("#713F12")
         paint.textSize = 34f
         paint.isFakeBoldText = true
-        canvas.drawText("🐣 \"너도 나 어떤지 1분만에 평가해줘!\"", 150f, 1735f, paint)
+        canvas.drawText("🌸 [모두의 MBTI] 1분만에 평가하러 가기 🐣", 120f, 1735f, paint)
 
         paint.textSize = 24f
+        paint.color = android.graphics.Color.parseColor("#854D0E")
         paint.isFakeBoldText = false
-        canvas.drawText("https://othermbti-app-2026.surge.sh/test?target=$targetUid", 150f, 1780f, paint)
+        canvas.drawText("👉 링크 눌러 [$userNickname] 님의 MBTI 갭 평가 참여하기", 120f, 1780f, paint)
+
 
         val imagesFolder = File(context.cacheDir, "shared_images")
         imagesFolder.mkdirs()
