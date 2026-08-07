@@ -1153,11 +1153,15 @@ fun ShareBottomSheetDialog(
     )
 }
 
+const val ADMOB_APP_ID = "ca-app-pub-5254974097452914~6238198724"
+const val ADMOB_REWARDED_AD_UNIT_ID = "ca-app-pub-5254974097452914/7135247341"
+
 @Composable
 fun AdRewardDialog(
     onDismiss: () -> Unit,
     onAdCompleted: () -> Unit
 ) {
+
     var countdown by remember { mutableStateOf(3) }
 
     LaunchedEffect(Unit) {
