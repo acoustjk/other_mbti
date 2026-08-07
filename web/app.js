@@ -284,16 +284,26 @@ function initUI() {
   });
 
   // URL Routing Check for Incoming Friend Survey Links (?target=... or /test)
+  const href = window.location.href;
   const urlParams = new URLSearchParams(window.location.search);
-  const pathName = window.location.pathname;
-  const isSurveyRoute = urlParams.has('target') || pathName.includes('/test') || urlParams.get('mode') === 'survey';
+  const isSurveyRoute = href.includes('target=') || href.includes('/test') || href.includes('mode=survey');
 
   if (isSurveyRoute) {
-    const targetUid = urlParams.get('target') || state.user.uid;
+    let targetUid = urlParams.get('target');
+    if (!targetUid && href.includes('target=')) {
+      try { targetUid = href.split('target=')[1].split('&')[0]; } catch(e) {}
+    }
+    if (!targetUid) targetUid = state.user.uid;
+
     btnWebMode.classList.add('active');
     btnAppMode.classList.remove('active');
     webViewSection.classList.add('active');
     appViewSection.classList.remove('active');
+    
+    // Hide simulator mode switcher header for friends
+    const modeSwitcher = document.querySelector('.mode-switcher');
+    if (modeSwitcher) modeSwitcher.style.display = 'none';
+
     startSurvey(targetUid);
   } else {
     btnAppMode.classList.add('active');
@@ -302,6 +312,7 @@ function initUI() {
     webViewSection.classList.remove('active');
     renderAppView();
   }
+
 
 
   // Auto Kakao Link trigger check
