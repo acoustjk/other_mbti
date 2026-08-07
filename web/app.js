@@ -316,8 +316,8 @@ function initUI() {
 
 
   // Auto Kakao Link trigger check
-  const urlParams = new URLSearchParams(window.location.search);
   if (urlParams.get('auto_kakao') === '1') {
+
     const autoTarget = urlParams.get('target') || state.user.uid;
     const autoNick = urlParams.get('nickname') || state.user.nickname;
     setTimeout(() => {
@@ -1101,124 +1101,7 @@ function draw916InstagramStoryCanvas(canvas, ctx, analytics) {
     });
   }
 
-  // 4-Axis Percentage Gauges Section
-  ctx.fillStyle = '#2E1065';
-  ctx.font = 'extrabold 32px "Noto Sans KR", sans-serif';
-  ctx.fillText('📊 MBTI 지표별 지인 응답 비율', 60, 1205);
 
-  const dimensions = [
-    { title: '외향 (E) vs 내향 (I)', perceived: `E ${analytics.pcts.pctE}% / I ${analytics.pcts.pctI}%`, val: analytics.pcts.pctE },
-    { title: '감각 (S) vs 직관 (N)', perceived: `S ${analytics.pcts.pctS}% / N ${analytics.pcts.pctN}%`, val: analytics.pcts.pctS },
-    { title: '사고 (T) vs 감정 (F)', perceived: `T ${analytics.pcts.pctT}% / F ${analytics.pcts.pctF}%`, val: analytics.pcts.pctT },
-    { title: '판단 (J) vs 인식 (P)', perceived: `J ${analytics.pcts.pctJ}% / P ${analytics.pcts.pctP}%`, val: analytics.pcts.pctJ }
-  ];
-
-  let dimY = 1240;
-  dimensions.forEach(d => {
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
-    ctx.roundRect(60, dimY, 960, 88, 24);
-    ctx.fill();
-
-    ctx.fillStyle = '#1E1B4B';
-    ctx.font = 'bold 24px "Noto Sans KR", sans-serif';
-    ctx.fillText(d.title, 90, dimY + 38);
-
-    ctx.fillStyle = '#7C3AED';
-    ctx.font = 'extrabold 24px "Outfit", sans-serif';
-    ctx.fillText(d.perceived, 700, dimY + 38);
-
-    // Track
-    ctx.fillStyle = '#F3E8FF';
-    ctx.roundRect(90, dimY + 50, 880, 18, 9);
-    ctx.fill();
-
-    // Fill Bar
-    ctx.fillStyle = '#A78BFA';
-    const fillW = Math.max(20, Math.min(880, (d.val / 100) * 880));
-    ctx.roundRect(90, dimY + 50, fillW, 18, 9);
-    ctx.fill();
-
-    dimY += 105;
-  });
-
-  // Bottom Instagram Story Sticker CTA (Pastel Butter Yellow Pill)
-  ctx.fillStyle = '#FEF08A';
-  ctx.strokeStyle = '#FACC15';
-  ctx.lineWidth = 3;
-  ctx.roundRect(60, 1680, 960, 130, 40);
-  ctx.fill(); ctx.stroke();
-
-  ctx.fillStyle = '#713F12';
-  ctx.font = 'black 34px "Noto Sans KR", sans-serif';
-  ctx.textAlign = 'center';
-  ctx.fillText('🐣 "너도 나 어떤지 1분만에 평가해줘!"', 540, 1735);
-
-  ctx.fillStyle = '#A16207';
-  ctx.font = 'bold 24px "Outfit", sans-serif';
-  ctx.fillText(`https://othermbti-app-2026.surge.sh/test?target=${state.user.uid}`, 540, 1780);
-  ctx.textAlign = 'left';
-}
-
-
-  ctx.fillStyle = '#FEE500';
-  ctx.font = 'bold 24px "Noto Sans KR", sans-serif';
-  ctx.fillText('지인이 본 나 (Friends)', 610, 435);
-
-  ctx.fillStyle = '#FFFFFF';
-  ctx.font = 'extrabold 64px "Outfit", sans-serif';
-  ctx.fillText(analytics.perceivedMbti, 610, 520);
-
-  // Huge Gap Banner
-  const gapGrad = ctx.createLinearGradient(60, 630, 1020, 630);
-  gapGrad.addColorStop(0, '#8B5CF6');
-  gapGrad.addColorStop(1, '#EC4899');
-  ctx.fillStyle = gapGrad;
-  ctx.roundRect(60, 630, 960, 100, 24);
-  ctx.fill();
-
-  ctx.fillStyle = '#FFFFFF';
-  ctx.font = 'black 32px "Noto Sans KR", sans-serif';
-  ctx.fillText(`🔥 가장 큰 MBTI 차이 : ${analytics.maxGapDimension}`, 100, 692);
-
-  // TOP 3 Signature Keywords Section
-  ctx.fillStyle = '#FEE500';
-  ctx.font = 'extrabold 32px "Noto Sans KR", sans-serif';
-  ctx.fillText('🏆 지인들이 선택한 내 대표 모습 TOP 3', 60, 785);
-
-  let kwY = 820;
-  const rankColors = ['#FEE500', '#E2E8F0', '#FDBA74'];
-  const rankBadges = ['🥇 1위', '🥈 2위', '🥉 3위'];
-
-  if (analytics.topKeywords.length === 0) {
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.08)';
-    ctx.roundRect(60, kwY, 960, 90, 20);
-    ctx.fill();
-    ctx.fillStyle = '#94A3B8';
-    ctx.font = '26px "Noto Sans KR", sans-serif';
-    ctx.fillText('아직 수집된 키워드가 없습니다.', 100, kwY + 54);
-  } else {
-    analytics.topKeywords.slice(0, 3).forEach((item, idx) => {
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.07)';
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
-      ctx.lineWidth = 1;
-      ctx.roundRect(60, kwY, 960, 96, 20);
-      ctx.fill(); ctx.stroke();
-
-      ctx.fillStyle = rankColors[idx];
-      ctx.font = 'extrabold 28px "Noto Sans KR", sans-serif';
-      ctx.fillText(rankBadges[idx], 95, kwY + 58);
-
-      ctx.fillStyle = '#FFFFFF';
-      ctx.font = 'bold 30px "Noto Sans KR", sans-serif';
-      ctx.fillText(item.keyword, 220, kwY + 58);
-
-      ctx.fillStyle = '#94A3B8';
-      ctx.font = '24px "Noto Sans KR", sans-serif';
-      ctx.fillText(`${item.count}회 지인 지목`, 830, kwY + 58);
-
-      kwY += 114;
-    });
-  }
 
   // 4-Axis Percentage Gauges Section
   ctx.fillStyle = '#FFFFFF';
