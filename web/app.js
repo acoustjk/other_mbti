@@ -650,24 +650,58 @@ function renderMbtiGrid() {
 // --------------------------------------------------------------------------
 // 6. Friend Web Survey Logic & Firestore Writing
 // --------------------------------------------------------------------------
-function startSurvey() {
+function startSurvey(targetUid, customNick) {
+  const urlParams = new URLSearchParams(window.location.search);
+  const href = window.location.href;
+
+  let nickFromUrl = customNick || urlParams.get('nick') || urlParams.get('nickname');
+  if (!nickFromUrl && href.includes('nick=')) {
+    try {
+      nickFromUrl = decodeURIComponent(href.split('nick=')[1].split('&')[0]);
+    } catch (e) {}
+  }
+
+  let displayNickname = nickFromUrl || (targetUid === state.user.uid ? state.user.nickname : '친구');
+
   state.survey = {
     currentStep: 0,
     answers: {},
     selectedKeywords: [],
     evaluatorName: '',
-    isAnonymous: false
+    isAnonymous: false,
+    targetUid: targetUid || state.user.uid,
+    targetNickname: displayNickname
   };
 
-  document.getElementById('surveyTargetName').textContent = state.user.nickname;
-  document.getElementById('surveyTargetAvatar').textContent = state.user.nickname.charAt(0);
-  document.getElementById('completeTargetName').textContent = state.user.nickname;
+  document.getElementById('surveyTargetName').textContent = displayNickname;
+  document.getElementById('surveyTargetAvatar').textContent = displayNickname.charAt(0);
+  document.getElementById('completeTargetName').textContent = displayNickname;
+
+  if (db && targetUid) {
+    db.collection(window.FirebaseService.collections.USERS)
+      .doc(targetUid)
+      .get()
+      .then(doc => {
+        if (doc.exists) {
+          const uData = doc.data();
+          if (uData.nickname) {
+            displayNickname = uData.nickname;
+            state.survey.targetNickname = displayNickname;
+            document.getElementById('surveyTargetName').textContent = displayNickname;
+            document.getElementById('surveyTargetAvatar').textContent = displayNickname.charAt(0);
+            document.getElementById('completeTargetName').textContent = displayNickname;
+          }
+        }
+      })
+      .catch(e => console.warn('Firestore fetch user:', e));
+  }
 
   document.getElementById('surveyCard').classList.remove('hidden');
   document.getElementById('completionCard').classList.add('hidden');
 
   renderSurveyStep();
 }
+
 
 function renderSurveyStep() {
   const step = state.survey.currentStep;
