@@ -661,7 +661,10 @@ function startSurvey(targetUid, customNick) {
     } catch (e) {}
   }
 
-  let displayNickname = nickFromUrl || (targetUid === state.user.uid ? state.user.nickname : '친구');
+  let displayNickname = nickFromUrl;
+  if (!displayNickname || displayNickname === 'undefined' || displayNickname === 'null') {
+    displayNickname = (state.user && state.user.nickname && state.user.nickname !== '김타인') ? state.user.nickname : '나';
+  }
 
   state.survey = {
     currentStep: 0,
@@ -672,6 +675,7 @@ function startSurvey(targetUid, customNick) {
     targetUid: targetUid || state.user.uid,
     targetNickname: displayNickname
   };
+
 
   document.getElementById('surveyTargetName').textContent = displayNickname;
   document.getElementById('surveyTargetAvatar').textContent = displayNickname.charAt(0);
